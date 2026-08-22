@@ -1,0 +1,23 @@
+version: 1
+verified_at: 2026-08-22
+sources:
+  world_bank_income:
+    url: https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups
+    fiscal_year: 2027
+  oecd_dac_oda:
+    url: https://www.oecd.org/en/topics/sub-issues/oda-eligibility-and-conditions/dac-list-of-oda-recipients.html
+    note: Current DAC recipient list; 2026 review postponed to 2027.
+
+countries:
+  GH: {name: Ghana, income_group: LMIC, oda_eligible: true}
+  KE: {name: Kenya, income_group: LMIC, oda_eligible: true}
+  MW: {name: Malawi, income_group: LIC, oda_eligible: true}
+  NG: {name: Nigeria, income_group: LMIC, oda_eligible: true}
+  ZA: {name: South Africa, income_group: UMIC, oda_eligible: true}
+  ZW: {name: Zimbabwe, income_group: LMIC, oda_eligible: true}
+  UG: {name: Uganda, income_group: LIC, oda_eligible: true}
+  ZM: {name: Zambia, income_group: LMIC, oda_eligible: true}
+  TZ: {name: Tanzania, income_group: LMIC, oda_eligible: true}
+  RW: {name: Rwanda, income_group: LIC, oda_eligible: true}
+  ET: {name: Ethiopia, income_group: LIC, oda_eligible: true}
+  GB: {name: United Kingdom, income_group: HIC, oda_eligible: false}
