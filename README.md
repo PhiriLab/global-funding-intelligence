@@ -20,6 +20,19 @@ The core rule is simple: **eligibility is not determined by this public reposito
 
 Current structured beta coverage includes IDRC and Science for Africa detail pages. UKRI, NIHR, Wellcome and EU Funding & Tenders normalization code is also included in the public engine. Additional global-health, African, philanthropic and life-sciences funders remain explicitly gated according to their source state.
 
+## Getting started
+
+```bash
+git clone https://github.com/PhiriLab/global-funding-intelligence.git
+cd global-funding-intelligence
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+PYTHONPATH=src pytest -q
+```
+
+The public package has no required API keys or private model credentials. Network-facing source adapters use primary funder endpoints; unit tests use local fixtures and deterministic parser inputs.
+
 ## Public record schema
 
 Public structured records may include:
