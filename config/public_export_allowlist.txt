@@ -1,5 +1,6 @@
 # Public Global Funding Intelligence release boundary.
 # Default deny: only these funding-engine files belong in the public companion.
+# The CI workflow is generated directly in the public repository and carries no secrets.
 
 README.md
 requirements.txt
@@ -28,3 +29,4 @@ tests/test_funding_adapter.py
 tests/test_funding_identity.py
 tests/fixtures/funding/idrc_stisa_2034.html
 tests/fixtures/funding/sfa_gen_impact_eoi.html
+.github/workflows/tests.yml
