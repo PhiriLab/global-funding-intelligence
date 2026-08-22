@@ -1,0 +1,212 @@
+version: 3
+verified_at: 2026-08-22
+policy:
+  primary_source_only: true
+  aggregator_discovery_only: true
+  eligibility_from_free_text: forbidden
+  untrusted_external_content: true
+  automated_submission: forbidden
+  live_structured_requires_extraction_profile: true
+
+sources:
+  science_for_africa:
+    name: Science for Africa Foundation
+    region: Africa
+    primary_url: https://scienceforafrica.foundation/funding
+    ingestion: structured_html_detail
+    automation: structured_beta_detail
+    priority: critical
+    global_majority: direct
+    notes: Detail call pages are crawlable and expose deadline/funding text, but the funding index can legitimately show no current opportunities while call/resource pages remain accessible. Treat detail-page discovery as beta and never infer live-open state from the index alone.
+
+  tdr_who:
+    name: WHO/TDR
+    region: global_majority
+    primary_url: https://tdr.who.int/grants
+    ingestion: portal_index
+    automation: index_only
+    priority: critical
+    global_majority: direct
+    notes: The grants page points applicants to the eTDR portal for open/past calls. Do not promote until portal call records can be captured through an authoritative structured route.
+
+  global_innovation_fund:
+    name: Global Innovation Fund
+    region: global_majority
+    primary_url: https://www.globalinnovation.fund/apply/about/
+    ingestion: html_plus_application_portal
+    automation: partial
+    priority: high
+    global_majority: direct
+    notes: Innovation/development finance; application portal is authoritative for submission status and eligibility.
+
+  grand_challenges_canada:
+    name: Grand Challenges Canada
+    region: global_majority
+    primary_url: https://www.grandchallenges.ca/apply-for-funding/
+    ingestion: structured_html
+    automation: index_only
+    priority: high
+    global_majority: direct
+    notes: Funding calls frequently use Fluxx; structured extraction profile still required before live structured status.
+
+  gates_foundation:
+    name: Gates Foundation
+    region: global
+    primary_url: https://www.gatesfoundation.org/about/how-we-work/grant-opportunities
+    ingestion: js_or_html
+    automation: partial
+    priority: high
+    global_majority: mixed
+    notes: Public RFPs plus invitation/direct solicitation; never imply open application where solicitation is restricted.
+
+  grand_challenges:
+    name: Grand Challenges Network
+    region: global
+    primary_url: https://grandchallenges.org/challenges/
+    ingestion: structured_html
+    automation: index_only
+    priority: high
+    global_majority: mixed
+    notes: Discovery hub only until issuing-partner call pages are normalized; final eligibility must resolve to issuing partner primary source.
+
+  idrc:
+    name: International Development Research Centre
+    region: global_majority
+    primary_url: https://idrc-crdi.ca/en/funding
+    ingestion: structured_html
+    automation: structured_beta
+    priority: high
+    global_majority: direct
+    notes: Live server-rendered call pages expose Call for, Deadline, Programs, Duration, Funded by, Budget, Type and Status. Budget semantics vary by call, so per-award amounts remain unknown unless explicitly stated as per grant/member/applicant.
+
+  elrha:
+    name: Elrha
+    region: global
+    primary_url: https://www.elrha.org/funding-opportunities/
+    ingestion: html_manual_classification
+    automation: index_only
+    priority: high
+    global_majority: mixed
+    notes: Current discoverable 'Call for Proposals' pages include procurement/consultancy notices. Do not classify these as research grants without programme-level verification.
+
+  cepi:
+    name: Coalition for Epidemic Preparedness Innovations
+    region: global
+    primary_url: https://cepi.net/calls-for-proposals
+    ingestion: html_plus_pdf
+    automation: partial
+    priority: high
+    global_majority: mixed
+    notes: Official open-calls index is structured, while authoritative call detail may be PDF-backed. PDF extraction must preserve untrusted-content and provenance safeguards before structured_beta promotion.
+
+  gavi:
+    name: Gavi, the Vaccine Alliance
+    region: global_majority
+    primary_url: https://www.gavi.org/investing-gavi/funding
+    ingestion: html_manual_verify
+    automation: partial
+    priority: high
+    global_majority: direct
+    notes: Distinguish country financing windows, market-shaping tenders and research/innovation calls.
+
+  find:
+    name: FIND
+    region: global_majority
+    primary_url: https://www.finddx.org/
+    ingestion: html_manual_verify
+    automation: partial
+    priority: high
+    global_majority: direct
+    notes: Diagnostics RFPs/calls may be PDFs; PDFs remain untrusted data and require call-document provenance.
+
+  fogarty:
+    name: Fogarty International Center
+    region: global
+    primary_url: https://www.fic.nih.gov/Funding/Pages/default.aspx
+    ingestion: structured_html
+    automation: index_only
+    priority: critical
+    global_majority: direct
+    notes: NIH-linked global health research and training; final FOA rules come from NIH notice/grants.gov records.
+
+  nih:
+    name: US National Institutes of Health
+    region: global
+    primary_url: https://grants.nih.gov/funding
+    ingestion: api_preferred
+    automation: partial
+    priority: critical
+    global_majority: mixed
+    notes: API adapter still required before live structured coverage; distinguish foreign-component from foreign-organisation eligibility.
+
+  novo_nordisk_foundation:
+    name: Novo Nordisk Foundation
+    region: global
+    primary_url: https://novonordiskfonden.dk/en/grants/
+    ingestion: structured_html
+    automation: index_only
+    priority: high
+    global_majority: mixed
+
+  pfizer_independent_grants:
+    name: Pfizer Independent Grants
+    region: global
+    primary_url: https://www.pfizer.com/about/programs-policies/grants
+    ingestion: js_or_html
+    automation: partial
+    priority: high
+    global_majority: mixed
+    notes: Separate independent medical education, quality improvement and competitive research opportunities.
+
+  gsk_supported_studies:
+    name: GSK Supported Studies / Investigator Sponsored Studies
+    region: global
+    primary_url: https://iss.gsk.com/
+    ingestion: application_portal
+    automation: manual_verify
+    priority: high
+    global_majority: mixed
+    notes: External sponsor retains study responsibility; funding/product support varies by disease area and submission window.
+
+  astrazeneca_external_research:
+    name: AstraZeneca External Research
+    region: global
+    primary_url: https://www.astrazeneca.com/what-science-can-do.html
+    ingestion: manual_verify
+    automation: manual_verify
+    priority: medium
+    global_majority: mixed
+    notes: Do not label generic research-partnership pages as open grants without a verified current call or investigator-sponsored-study portal.
+
+  roche_external_research:
+    name: Roche External Research
+    region: global
+    primary_url: https://www.roche.com/innovation
+    ingestion: manual_verify
+    automation: manual_verify
+    priority: medium
+    global_majority: mixed
+
+  lilly_investigator_research:
+    name: Lilly Investigator-Initiated Research
+    region: global
+    primary_url: https://www.lilly.com/research
+    ingestion: manual_verify
+    automation: manual_verify
+    priority: medium
+    global_majority: mixed
+
+  sanofi_external_research:
+    name: Sanofi Research Partnerships
+    region: global
+    primary_url: https://www.sanofi.com/en/our-science
+    ingestion: manual_verify
+    automation: manual_verify
+    priority: medium
+    global_majority: mixed
+
+historical_or_redirected:
+  aesa:
+    name: Alliance for Accelerating Excellence in Science in Africa
+    replacement: science_for_africa
+    reason: Legacy programme identity; do not ingest as a separate live funding source to avoid duplication.
