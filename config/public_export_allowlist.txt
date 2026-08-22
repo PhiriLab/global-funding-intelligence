@@ -1,0 +1,30 @@
+# Public Global Funding Intelligence release boundary.
+# Default deny: only these funding-engine files belong in the public companion.
+
+README.md
+requirements.txt
+docs/FUNDING_INTELLIGENCE_ARCHITECTURE.md
+config/funder_ingestion.yaml
+config/funding_sources.yaml
+config/country_classification.yaml
+config/public_export_allowlist.txt
+src/observatory/country_data.py
+src/observatory/funding_adapter.py
+src/observatory/funding_decision.py
+src/observatory/funding_extract.py
+src/observatory/funding_identity.py
+src/observatory/funding_models.py
+src/observatory/funding_sources.py
+src/observatory/public_funding_export.py
+src/observatory/untrusted.py
+src/observatory/sources/ukri_funding.py
+src/observatory/sources/nihr_funding.py
+src/observatory/sources/wellcome_funding.py
+src/observatory/sources/eu_funding_tenders.py
+src/observatory/sources/global_health_funders.py
+tests/test_public_funding_export.py
+tests/test_priority_global_health_profiles.py
+tests/test_funding_adapter.py
+tests/test_funding_identity.py
+tests/fixtures/funding/idrc_stisa_2034.html
+tests/fixtures/funding/sfa_gen_impact_eoi.html
