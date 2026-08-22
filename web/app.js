@@ -36,3 +36,7 @@ els.sourceCount.textContent=sources.length;els.structuredCount.textContent=sourc
 document.querySelectorAll('[data-filter-region]').forEach(el=>el.addEventListener('click',e=>{els.region.value=e.currentTarget.dataset.filterRegion;els.search.value='';render();}));document.querySelectorAll('[data-search]').forEach(el=>el.addEventListener('click',e=>{els.search.value=e.currentTarget.dataset.search;render();scrollDiscover();}));
 els.dialog?.addEventListener('click',e=>{if(e.target===els.dialog)els.dialog.close();});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&els.dialog?.open)els.dialog.close();});
 initTheme();render();
+// In-page navigation is handled in JS so it works inside embeds/iframes (e.g. Wix),
+// where native "#anchor" hash scrolling can be unreliable. Progressive: if JS is
+// disabled the plain anchors still work on the standalone site.
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;var id=a.getAttribute('href').slice(1);if(!id)return;var el=document.getElementById(id);if(el){e.preventDefault();el.scrollIntoView({behavior:'smooth',block:'start'});}});
