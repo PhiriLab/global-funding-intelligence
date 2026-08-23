@@ -4,8 +4,8 @@ import argparse
 import asyncio
 from pathlib import Path
 
-from .multi_source_public_feed import fetch_multi_source_public_feed
 from .public_opportunity_feed import PublicOpportunityFeed
+from .resilient_multi_source import fetch_resilient_multi_source_public_feed
 from .source_resilience import reconcile_last_known_good, require_publication_quorum
 
 
@@ -19,9 +19,9 @@ async def generate_public_opportunity_file(
 ) -> int:
     """Fetch, reconcile, quorum-check and atomically publish the public feed.
 
-    Failed sources may reuse only their own bounded last-known-good records. LKG
-    reuse is explicitly marked in source health metadata and does not count toward
-    the current-source publication quorum.
+    Every upstream source is collected independently. Failed sources may reuse only
+    their own bounded last-known-good records. LKG reuse is explicitly marked in
+    source health metadata and does not count toward the current-source quorum.
     """
     if min_records < 0:
         raise ValueError("min_records must be non-negative")
@@ -38,7 +38,7 @@ async def generate_public_opportunity_file(
         except Exception:
             previous = None
 
-    feed, source_results = await fetch_multi_source_public_feed(
+    feed, source_results = await fetch_resilient_multi_source_public_feed(
         eu_page_size=page_size,
         html_source_limit=html_source_limit,
     )
@@ -55,10 +55,7 @@ async def generate_public_opportunity_file(
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_name(f".{destination.name}.tmp")
-    temporary.write_text(
-        feed.model_dump_json(indent=2, exclude_none=True) + "\n",
-        encoding="utf-8",
-    )
+    temporary.write_text(feed.model_dump_json(indent=2, exclude_none=True) + "\n", encoding="utf-8")
     temporary.replace(destination)
 
     for result in source_results:
