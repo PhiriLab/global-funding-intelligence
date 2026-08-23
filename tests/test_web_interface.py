@@ -102,7 +102,7 @@ def test_opportunity_feed_failure_cannot_break_funder_directory():
 
 
 def test_opportunity_feed_visibly_discloses_staleness():
-    assert "OPPORTUNITY_STALE_HOURS=36" in OPPORTUNITIES_JS
+    assert "OPPORTUNITY_STALE_HOURS = 36" in OPPORTUNITIES_JS
     assert "Feed is stale" in OPPORTUNITIES_JS
     assert "verify current status at each primary call before acting" in OPPORTUNITIES_JS
     assert "dataset.freshness" in OPPORTUNITIES_JS
@@ -116,18 +116,18 @@ def test_opportunity_filters_preserve_unknown_by_default_and_support_verified_on
     assert "hasRouteEvidence" in OPPORTUNITIES_JS
     assert "countryRoute" in OPPORTUNITIES_JS
     assert "Unknown is not treated as ineligible" in OPPORTUNITIES_JS
-    assert "route==='unknown'" in OPPORTUNITIES_JS
-    assert "route==='excluded'||route==='not_listed'" in OPPORTUNITIES_JS
+    assert "route === 'unknown'" in OPPORTUNITIES_JS
+    assert "route === 'excluded' || route === 'not_listed'" in OPPORTUNITIES_JS
 
 
 def test_organisation_options_are_derived_from_structured_feed_values():
-    assert "item.applicant_types||[]" in OPPORTUNITIES_JS
+    assert "item.applicant_types || []" in OPPORTUNITIES_JS
     assert "populateOrganisationOptions" in OPPORTUNITIES_JS
     assert "Not verified" in OPPORTUNITIES_JS
 
 
 def test_applicant_matcher_is_gate_first_and_transparent():
-    for marker in ("MATCH MY PROFILE", "Rank for this profile", "profileDecision", "countryRoute", "decision='verify'", "decision='skip'", "decision='partner'", "decision='apply'"):
+    for marker in ("MATCH MY PROFILE", "Rank for this profile", "profileDecision", "countryRoute", "decision = 'verify'", "decision = 'skip'", "decision = 'partner'", "decision = 'apply'"):
         assert marker in OPPORTUNITIES_JS
     assert "Unknown evidence stays <strong>verify</strong>" in OPPORTUNITIES_JS
     assert "Ranking is eligibility- and feasibility-led" in OPPORTUNITIES_JS
@@ -135,17 +135,32 @@ def test_applicant_matcher_is_gate_first_and_transparent():
     assert ".match-decision.verify" in OPPORTUNITIES_CSS
 
 
-def test_usage_telemetry_is_aggregate_and_privacy_bounded():
+def test_usage_telemetry_uses_publishable_key_and_is_privacy_bounded():
     assert "GFI_ALLOWED_EVENTS" in OPPORTUNITIES_JS
-    for event in ("page_ready", "feed_ready", "filter_change", "search_used", "profile_ranked", "primary_source_open"):
+    for event in ("page_ready", "feed_ready", "filter_change", "search_used", "profile_ranked", "primary_source_open", "pulse_submitted"):
         assert event in OPPORTUNITIES_JS
-    assert "navigator.doNotTrack==='1'" in OPPORTUNITIES_JS
-    assert "gfi-aggregate-analytics" in OPPORTUNITIES_JS
-    assert "GFI_ANALYTICS_ENDPOINT" in OPPORTUNITIES_JS
+    assert "navigator.doNotTrack === '1'" in OPPORTUNITIES_JS
+    assert "sb_publishable_" in OPPORTUNITIES_JS
+    assert "/rest/v1/gfi_usage_events" in OPPORTUNITIES_JS
+    assert "'apikey': GFI_SUPABASE_PUBLISHABLE_KEY" in OPPORTUNITIES_JS
     assert "query_length_bucket" in OPPORTUNITIES_JS
+    assert "gfiSafeProperties" in OPPORTUNITIES_JS
     assert "no session recording, persistent visitor ID or inferred sensitive demographics" in OPPORTUNITIES_JS
-    forbidden = ("sessionStorage", "localStorage.setItem('gfi-visitor", "fingerprint", "ip_address", "ethnicity", "race", "religion", "disability")
-    assert all(token not in OPPORTUNITIES_JS for token in forbidden)
+    technical_forbidden = ("service_role", "sb_secret_", "sessionStorage", "gfi-visitor", "fingerprint", "ip_address", "visitor_id", "session_id")
+    assert all(token not in OPPORTUNITIES_JS for token in technical_forbidden)
+    for sensitive_field in ("name=\"ethnicity\"", "name=\"race\"", "name=\"religion\"", "name=\"disability\""):
+        assert sensitive_field not in OPPORTUNITIES_JS
+
+
+def test_anonymous_usefulness_pulse_is_voluntary_and_avoids_identity_collection():
+    for marker in ("HELP US MEASURE EQUITABLE REACH", "Submit anonymous feedback", "Voluntary and anonymous", "gfi_usefulness_pulse"):
+        assert marker in OPPORTUNITIES_JS
+    assert "We do not ask for your name, email, ethnicity, disability, religion or other sensitive identity information" in OPPORTUNITIES_JS
+    assert "Do not include personal, confidential or sensitive information" in OPPORTUNITIES_JS
+    for field in ("country_code", "world_region", "organisation_type", "career_stage", "sector", "setting_identity", "found_relevant_opportunity", "usefulness", "would_return"):
+        assert field in OPPORTUNITIES_JS
+    assert "maxlength=\"500\"" in OPPORTUNITIES_JS
+    assert ".usefulness-pulse" in OPPORTUNITIES_CSS
 
 
 def test_source_health_labels_cover_new_live_sources_and_lkg():
