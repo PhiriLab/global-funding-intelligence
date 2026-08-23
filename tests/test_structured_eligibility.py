@@ -17,7 +17,7 @@ def test_ukri_labelled_fields_populate_machine_routes():
     assert result.partner_countries == ("ZA", "KE")
     assert result.consortium_required is True
     assert result.lead_location_rule == "United Kingdom"
-    assert result.global_majority_access == "direct"
+    assert result.global_majority_access == "partner_only"
 
 
 def test_nihr_labelled_lmic_and_oda_fields_are_structured():
