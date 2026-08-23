@@ -78,11 +78,33 @@ def test_unknown_source_fails_closed():
         )
 
 
-def test_public_tree_denylist_excludes_private_observatory_content():
-    denied = {"config/projects.yaml", "digests", "HANDOFF.md", "src/observatory/scout.py", "scripts/run_scout.py"}
+def _public_allowlist() -> set[str]:
     public_manifest = Path("config/public_export_allowlist.txt")
     assert public_manifest.exists()
-    allowed = {line.strip() for line in public_manifest.read_text().splitlines() if line.strip() and not line.startswith("#")}
+    return {
+        line.strip()
+        for line in public_manifest.read_text().splitlines()
+        if line.strip() and not line.startswith("#")
+    }
+
+
+def test_public_tree_denylist_excludes_private_observatory_content():
+    denied = {"config/projects.yaml", "digests", "HANDOFF.md", "src/observatory/scout.py", "scripts/run_scout.py"}
+    allowed = _public_allowlist()
     for path in denied:
         assert path not in allowed
     assert all(not entry.startswith("digests/") for entry in allowed)
+
+
+def test_live_web_release_is_declared_in_public_allowlist():
+    allowed = _public_allowlist()
+    required = {
+        "docs/EMBED.md",
+        "web/index.html",
+        "web/styles.css",
+        "web/app.js",
+        "web/wix-bundle.html",
+        "tests/test_web_interface.py",
+        ".github/workflows/pages.yml",
+    }
+    assert required <= allowed
