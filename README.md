@@ -18,7 +18,7 @@ The core rule is simple: **eligibility is not determined by this public reposito
 
 ## Current beta coverage
 
-Current structured beta coverage includes IDRC and Science for Africa detail pages. UKRI, NIHR, Wellcome and EU Funding & Tenders normalization code is also included in the public engine. Additional global-health, African, philanthropic and life-sciences funders remain explicitly gated according to their source state.
+Structured public-feed capability includes EU Funding & Tenders plus source-specific UKRI, NIHR and Wellcome collection, with deterministic labelled-field eligibility extraction where those primary pages expose stable structured fields. IDRC and Science for Africa detail-page normalization remain part of the wider source engine. Additional global-health, African, Global Majority, philanthropic and life-sciences funders continue to be expanded and promoted through source states only when their authoritative data can be handled safely.
 
 ## Getting started
 
@@ -45,11 +45,11 @@ Public structured records may include:
 - programme/status where deterministically extracted
 - deadlines, including warnings where timezone or stage needs verification
 - currency and award range only where semantically unambiguous
-- raw budget text when the amount cannot safely be classified as total-call versus per-award funding
+- structured applicant organisation, country, lead/partner, income-group, ODA, consortium and local-partner fields only when deterministically verified
 - source hash/provenance metadata
 - eligibility status: `Not determined — verify at source`
 
-No applicant-specific scoring, private project data, private digests, or confidential research-observatory content is part of the public repository.
+No applicant-specific private data, private digests, or confidential research-observatory content is part of the public repository.
 
 ## Security and provenance
 
@@ -58,6 +58,14 @@ External funding pages and documents are treated as untrusted data. Retrieved te
 ## Global Majority design principle
 
 The engine is designed to make Global Majority access explicit rather than hidden in free text. Lead-country, partner-country, ODA/income-group and consortium rules are represented separately when verified. Unknown rules stay unknown rather than being guessed.
+
+## Partnerships, sponsorship and independence
+
+Global Funding Intelligence is an independent public-interest PhiriLab initiative. Funders, research organisations, foundations, technology partners and sponsors are welcome to support wider source coverage, infrastructure, accessibility, capacity-building and Global Majority reach.
+
+Financial, technical or institutional support **does not confer influence over opportunity verification, eligibility assessment, source-state decisions or ranking**. Sponsored relationships should be disclosed transparently, and funders remain the final authority for their own calls.
+
+Partnership and sponsorship enquiries can be submitted through the repository's structured `Partnership & sponsorship enquiry` issue form. This avoids publishing a personal email address while creating an auditable professional contact route.
 
 ## Status
 
