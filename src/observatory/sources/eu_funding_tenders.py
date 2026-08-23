@@ -100,12 +100,24 @@ def normalise_eu_record(record: dict[str, Any]) -> Opportunity:
     return Opportunity(source_id="eu_funding_tenders", external_id=identifier, title=title, funder="European Commission", programme=str(programme) if programme is not None else None, primary_url=primary_url, status=status, opening_at=opening_at, closing_at=closing_at, global_majority_access="unclear", source_checked_at=datetime.now(timezone.utc), provenance_note=provenance)
 
 
+def normalise_edctp3_record(record: dict[str, Any]) -> Opportunity:
+    opportunity = normalise_eu_record(record)
+    note = opportunity.provenance_note or ""
+    note += " Identified as Global Health EDCTP3 from authoritative EU programme metadata; call-specific applicant route remains unverified."
+    return opportunity.model_copy(update={
+        "source_id": "edctp3",
+        "funder": "Global Health EDCTP3 Joint Undertaking",
+        "provenance_note": note.strip(),
+        "global_majority_access": "unclear",
+    })
+
+
 def normalise_eu_records(records: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> tuple[Opportunity, ...]:
     return tuple(normalise_eu_record(record) for record in records)
 
 
 def normalise_edctp3_records(records: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> tuple[Opportunity, ...]:
-    return tuple(normalise_eu_record(record) for record in records if is_edctp3_record(record))
+    return tuple(normalise_edctp3_record(record) for record in records if is_edctp3_record(record))
 
 
 async def fetch_eu_open_calls(*, timeout: float = 30.0, page_size: int = 100) -> EUFundingResult:
