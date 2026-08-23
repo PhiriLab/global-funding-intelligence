@@ -27,7 +27,17 @@ sources:
     automation: structured_beta
     priority: critical
     global_majority: mixed
-    notes: Horizon Europe and related opportunity metadata are normalized from the European Commission public REST API. EDCTP3 is treated as a deterministic programme subset of this canonical EU feed. Eligibility and consortium-country rules remain unverified until explicit structured rules are available.
+    notes: Horizon Europe and related opportunity metadata are normalized from the European Commission public REST API. Eligibility and consortium-country rules remain unverified until explicit structured rules are available.
+
+  edctp3:
+    name: Global Health EDCTP3 Joint Undertaking
+    region: Africa
+    primary_url: https://global-health-edctp3.europa.eu/funding-opportunities_en
+    ingestion: eu_public_rest_api_programme_subset
+    automation: structured_beta
+    priority: critical
+    global_majority: direct
+    notes: EDCTP3 topics are identified deterministically from authoritative European Commission Funding & Tenders metadata and retain the Commission topic page as the call system of record. The EDCTP3 programme supports Europe-sub-Saharan Africa collaboration, but call-specific applicant route remains unverified unless explicit structured rules are available.
 
   ukri_funding_finder:
     name: UK Research and Innovation Funding Finder
@@ -42,12 +52,12 @@ sources:
   nihr_funding:
     name: NIHR Research Funding
     region: UK
-    primary_url: https://www.nihr.ac.uk/research-funding
+    primary_url: https://www.nihr.ac.uk/funding-opportunities
     ingestion: structured_html_detail
     automation: structured_beta
     priority: critical
     global_majority: mixed
-    notes: NIHR programme and call pages are normalized only when deterministic call fields are present. Fragmented or generic programme pages are skipped rather than inferred.
+    notes: NIHR funding-opportunity detail pages are normalized only when deterministic call fields are present. Generic programme and navigation pages are skipped rather than inferred.
 
   wellcome_funding:
     name: Wellcome Research Funding

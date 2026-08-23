@@ -30,7 +30,7 @@ def test_edctp3_is_a_deterministic_subset_of_eu_records():
     assert is_edctp3_record(eu_record(identifier="HORIZON-HLTH-2026-01", title="General health topic", frameworkProgrammeDescription="Horizon Europe")) is False
     records = normalise_edctp3_records([eu_record(), eu_record(identifier="HORIZON-HLTH-2026-01", title="General health topic", frameworkProgrammeDescription="Horizon Europe")])
     assert len(records) == 1
-    assert records[0].source_id == "eu_funding_tenders"
+    assert records[0].source_id == "edctp3"
 
 
 def test_eu_record_normalises_primary_fields_without_inventing_eligibility():
