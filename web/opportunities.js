@@ -12,12 +12,14 @@ const opportunityEls={
   search:document.getElementById('opportunitySearch')
 };
 
+const OPPORTUNITY_STALE_HOURS=36;
 let opportunityFeed=[];
 
 function opportunityEscape(value){return String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 function opportunityLifecycleLabel(value){return({closing_soon:'Closing soon',open:'Open',rolling:'Rolling',upcoming:'Upcoming',closed:'Closed',unknown:'Unknown'})[value]||value;}
 function opportunityDate(value){if(!value)return 'Not verified';const date=new Date(value);return Number.isNaN(date.getTime())?'Not verified':new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short',timeZoneName:'short'}).format(date);}
 function opportunityAmount(item){const currency=item.currency?`${item.currency} `:'';if(item.min_award!=null&&item.max_award!=null)return `${currency}${Number(item.min_award).toLocaleString()}–${Number(item.max_award).toLocaleString()}`;if(item.max_award!=null)return `Up to ${currency}${Number(item.max_award).toLocaleString()}`;if(item.total_fund!=null)return `Total fund ${currency}${Number(item.total_fund).toLocaleString()}`;return 'Amount not verified';}
+function opportunityFreshness(value){const generated=new Date(value);if(Number.isNaN(generated.getTime()))return {stale:true,label:'Feed timestamp unavailable'};const ageHours=Math.max(0,(Date.now()-generated.getTime())/3600000);return ageHours>OPPORTUNITY_STALE_HOURS?{stale:true,label:`Feed is stale (${Math.floor(ageHours)}h old)`}:{stale:false,label:`Feed checked ${opportunityDate(value)}`};}
 
 function renderOpportunities(){
   if(!opportunityEls.grid)return;
@@ -36,11 +38,15 @@ async function loadOpportunityFeed(){
     const payload=await response.json();
     if(payload?.schema_version!==1||!Array.isArray(payload.opportunities))throw new Error('Unsupported opportunity feed schema');
     opportunityFeed=payload.opportunities;
-    if(opportunityEls.status)opportunityEls.status.textContent=opportunityFeed.length?`Feed checked ${opportunityDate(payload.generated_at)} • ${opportunityFeed.length} structured opportunities`:`Feed checked ${opportunityDate(payload.generated_at)} • no structured opportunities published yet`;
+    const freshness=opportunityFreshness(payload.generated_at);
+    if(opportunityEls.status){
+      opportunityEls.status.dataset.freshness=freshness.stale?'stale':'current';
+      opportunityEls.status.textContent=freshness.stale?`${freshness.label} • verify current status at each primary call before acting`:(opportunityFeed.length?`${freshness.label} • ${opportunityFeed.length} structured opportunities`:`${freshness.label} • no structured opportunities published yet`);
+    }
     renderOpportunities();
   }catch(error){
     opportunityFeed=[];
-    if(opportunityEls.status)opportunityEls.status.textContent='Live opportunity feed is temporarily unavailable; the verified funder directory remains available below.';
+    if(opportunityEls.status){opportunityEls.status.dataset.freshness='unavailable';opportunityEls.status.textContent='Live opportunity feed is temporarily unavailable; the verified funder directory remains available below.';}
     opportunityEls.grid.innerHTML='<div class="opportunity-empty"><h3>Opportunity feed unavailable</h3><p>Nothing has been inferred or cached as current. Use the funder directory and primary-source links while the feed is unavailable.</p></div>';
     if(opportunityEls.count)opportunityEls.count.textContent='0';
     console.warn('Opportunity feed unavailable',error);
