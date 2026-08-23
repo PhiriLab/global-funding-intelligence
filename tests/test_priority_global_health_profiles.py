@@ -1,10 +1,11 @@
 import asyncio
+from datetime import timezone
 from pathlib import Path
 
 import pytest
 
 from observatory.funding_adapter import FundingSnapshot
-from observatory.funding_extract import _idrc_budget_semantics, extract_structured_funding, to_opportunity
+from observatory.funding_extract import _idrc_budget_semantics, _parse_date, _parse_money, extract_structured_funding, to_opportunity
 from observatory.sources.global_health_funders import SOURCES, extract_funder_opportunity
 
 FIXTURES = Path(__file__).parent / "fixtures" / "funding"
@@ -37,6 +38,26 @@ def test_idrc_mixed_total_and_per_award_budget_asserts_nothing():
     assert _idrc_budget_semantics("Ranging from CAD50,000 to CAD300,000 per consortium member")[1:4] == (50_000, 300_000, None)
     assert _idrc_budget_semantics("Up to six grants of up to CAD1.2 million each")[1:4] == (None, 1_200_000, None)
     assert _idrc_budget_semantics("CAD 692,000")[1:4] == (None, None, None)
+
+
+def test_money_parser_prefers_explicit_currency_and_spaced_thousands():
+    assert _parse_money("CAD $300,000") == ("CAD", None, 300_000)
+    assert _parse_money("CAD 50 000 to CAD 300 000") == ("CAD", 50_000, 300_000)
+
+
+def test_named_source_timezones_are_converted_exactly_to_utc():
+    summer, rolling = _parse_date("25 August 2026 3:00 pm UK time")
+    assert rolling is False and summer is not None
+    assert summer.tzinfo == timezone.utc
+    assert summer.hour == 14
+    eastern, _ = _parse_date("25 August 2026 3:00 pm ET")
+    assert eastern is not None and eastern.hour == 19
+
+
+def test_h1_is_preferred_over_navigation_text_for_title():
+    html = '''<html><head><title>Fallback title</title></head><body><nav>Funding menu</nav><h1>Authoritative call heading</h1><div>Status:</div><div>Open</div></body></html>'''
+    record = extract_structured_funding(snapshot("idrc", html))
+    assert record.title == "Authoritative call heading"
 
 
 def test_only_live_verified_detail_sources_are_structured():
