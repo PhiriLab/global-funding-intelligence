@@ -18,3 +18,10 @@ async def fetch_wellcome_deadlines() -> FundingSnapshot:
 async def fetch_wellcome_opportunity(url: str) -> ExtractedFundingRecord:
     snapshot = await fetch_primary_html("wellcome_funding", url, keywords=("scheme", "award", "fund", "apply", "eligib"))
     return extract_structured_funding(snapshot)
+
+
+async def discover_wellcome_opportunities(limit: int = 30) -> tuple[str, ...]:
+    index = await fetch_wellcome_index()
+    excluded = {WELLCOME_SCHEMES_URL.rstrip("/"), WELLCOME_DEADLINES_URL.rstrip("/")}
+    candidates = tuple(url for url in index.candidate_links if url.rstrip("/") not in excluded)
+    return candidates[: max(0, limit)]
