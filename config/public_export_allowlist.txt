@@ -38,6 +38,9 @@ tests/fixtures/funding/sfa_gen_impact_eoi.html
 web/index.html
 web/styles.css
 web/app.js
+web/opportunities.js
+web/opportunities.css
+web/data/opportunities.json
 web/wix-bundle.html
 .github/workflows/tests.yml
 .github/workflows/pages.yml
