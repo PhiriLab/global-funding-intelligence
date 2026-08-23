@@ -55,6 +55,30 @@ _SOURCE_LABELS = {
         "lead_location_rule": ("Host organisation location", "Lead applicant location"),
         "equity_or_lmic_requirement": ("LMIC or equity requirement", "Equity requirement"),
     },
+    "science_for_africa": {
+        "applicant_types": ("Eligible organisations", "Eligible organisation types", "Eligible applicants"),
+        "eligible_countries": ("Eligible countries",),
+        "excluded_countries": ("Excluded countries",),
+        "lead_countries": ("Lead applicant countries", "Principal applicant countries"),
+        "partner_countries": ("Partner countries",),
+        "eligible_income_groups": ("Eligible income groups",),
+        "consortium_required": ("Consortium required",),
+        "local_partner_required": ("Local partner required",),
+        "lead_location_rule": ("Lead applicant location", "Principal applicant location"),
+        "equity_or_lmic_requirement": ("Equity requirement", "LMIC or equity requirement"),
+    },
+    "idrc": {
+        "applicant_types": ("Eligible organisations", "Eligible organization types", "Eligible organisation types", "Eligible applicants"),
+        "eligible_countries": ("Eligible countries",),
+        "excluded_countries": ("Excluded countries",),
+        "lead_countries": ("Lead applicant countries",),
+        "partner_countries": ("Partner countries",),
+        "eligible_income_groups": ("Eligible income groups",),
+        "consortium_required": ("Consortium required",),
+        "local_partner_required": ("Local partner required",),
+        "lead_location_rule": ("Lead applicant location",),
+        "equity_or_lmic_requirement": ("LMIC or equity requirement", "Equity requirement"),
+    },
 }
 
 
