@@ -252,3 +252,8 @@ function observeOpportunityCards() {
 
 installJourneyPanel();
 observeOpportunityCards();
+
+const readinessScript = document.createElement('script');
+readinessScript.src = 'application-readiness.js';
+readinessScript.defer = true;
+document.body.appendChild(readinessScript);
