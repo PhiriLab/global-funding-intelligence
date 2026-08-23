@@ -6,6 +6,8 @@ on:
     paths:
       - 'web/**'
       - '.github/workflows/pages.yml'
+  schedule:
+    - cron: '17 6,18 * * *'
   workflow_dispatch:
 
 permissions:
@@ -25,10 +27,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install funding-engine dependencies
+        run: pip install -r requirements.txt
+      - name: Build current verified opportunity feed
+        run: PYTHONPATH=src python -m observatory.publish_public_opportunities --output web/data/opportunities.json --min-records 1 --page-size 100
       - uses: actions/configure-pages@v5
         # enablement lets the workflow turn Pages on via the API. Without it every
         # deploy fails with "Get Pages site failed ... Not Found" until Pages is
-        # enabled by hand in Settings → Pages, which is why the site never went live.
+        # enabled by hand in Settings → Pages.
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
