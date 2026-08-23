@@ -12,6 +12,7 @@ from .public_funding_export import resolve_source_state
 from .public_opportunity_feed import PublicOpportunityFeed, PublicSourceHealth, SourceHealthState, build_public_feed
 from .source_eligibility_evidence import summarise_eligibility_evidence
 from .structured_eligibility import extract_structured_eligibility
+from .sources.fogarty_funding import collect_fogarty_opportunities
 from .sources.nihr_funding import discover_nihr_opportunities, fetch_nihr_opportunity
 from .sources.ukri_funding import discover_ukri_opportunities, fetch_ukri_opportunity
 from .sources.wellcome_funding import discover_wellcome_opportunities, fetch_wellcome_opportunity
@@ -159,6 +160,25 @@ async def collect_wellcome(*, limit: int = 20) -> SourceCollectionResult:
     return await _collect_html_source("wellcome_funding", discover_wellcome_opportunities, fetch_wellcome_opportunity, limit=limit)
 
 
+async def collect_fogarty(*, limit: int = 20) -> SourceCollectionResult:
+    try:
+        opportunities = await collect_fogarty_opportunities(limit=limit)
+    except Exception as exc:
+        return SourceCollectionResult(
+            source_id="fogarty",
+            opportunities=(),
+            discovered=0,
+            accepted=0,
+            errors=(f"discovery failed: {type(exc).__name__}: {exc}",),
+        )
+    return SourceCollectionResult(
+        source_id="fogarty",
+        opportunities=opportunities,
+        discovered=len(opportunities),
+        accepted=len(opportunities),
+    )
+
+
 async def fetch_multi_source_public_feed(
     *,
     generated_at: datetime | None = None,
@@ -200,12 +220,13 @@ async def fetch_multi_source_public_feed(
         for item in eu_feed.opportunities
     ]
 
-    ukri, nihr, wellcome = await asyncio.gather(
+    ukri, nihr, wellcome, fogarty = await asyncio.gather(
         collect_ukri(limit=html_source_limit),
         collect_nihr(limit=html_source_limit),
         collect_wellcome(limit=html_source_limit),
+        collect_fogarty(limit=html_source_limit),
     )
-    results = (ukri, nihr, wellcome)
+    results = (ukri, nihr, wellcome, fogarty)
     combined: list[Opportunity] = eu_opportunities
     for result in results:
         combined.extend(result.opportunities)
