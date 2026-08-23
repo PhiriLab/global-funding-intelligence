@@ -6,13 +6,20 @@ import pytest
 
 from observatory.funding_adapter import FundingSnapshot
 from observatory.funding_extract import _idrc_budget_semantics, _parse_date, _parse_money, extract_structured_funding, to_opportunity
-from observatory.sources.global_health_funders import SOURCES, extract_funder_opportunity
+from observatory.sources.global_health_funders import (
+    SOURCES,
+    _OpenCallsParser,
+    _same_host_detail,
+    discover_idrc_opportunities,
+    discover_science_for_africa_opportunities,
+    extract_funder_opportunity,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures" / "funding"
 
 
-def snapshot(source_id: str, html: str) -> FundingSnapshot:
-    return FundingSnapshot(source_id=source_id, source_url=f"https://example.org/{source_id}", final_url=f"https://example.org/{source_id}/call", status_code=200, text=html, content_hash="fixture", candidate_links=())
+def snapshot(source_id: str, html: str, candidate_links=()) -> FundingSnapshot:
+    return FundingSnapshot(source_id=source_id, source_url=f"https://example.org/{source_id}", final_url=f"https://example.org/{source_id}/call", status_code=200, text=html, content_hash="fixture", candidate_links=tuple(candidate_links))
 
 
 def test_science_for_africa_profile_does_not_infer_eligibility():
@@ -82,3 +89,42 @@ def test_real_fixtures_do_not_invent_eligibility_when_present():
         opportunity = to_opportunity(record)
         assert opportunity.global_majority_access == "unclear"
         assert opportunity.lead_countries == []
+
+
+def test_idrc_open_calls_parser_stops_before_closed_archive():
+    html = '''<h2>Open calls</h2><a href="/en/funding/stisa-2034">STISA</a><a href="/en/funding/anesa">ANeSA</a><h2>Closed calls</h2><a href="/en/funding/old-call">Old call</a>'''
+    parser = _OpenCallsParser()
+    parser.feed(html)
+    assert parser.links == ["/en/funding/stisa-2034", "/en/funding/anesa"]
+
+
+def test_detail_url_filters_reject_cross_host_and_index_pages():
+    assert _same_host_detail("idrc", "https://idrc-crdi.ca/en/funding/stisa-2034") == "https://idrc-crdi.ca/en/funding/stisa-2034"
+    assert _same_host_detail("idrc", "https://evil.example/en/funding/stisa-2034") is None
+    assert _same_host_detail("idrc", "https://idrc-crdi.ca/en/funding/applying") is None
+    assert _same_host_detail("science_for_africa", "https://scienceforafrica.foundation/funding") is None
+    assert _same_host_detail("science_for_africa", "https://scienceforafrica.foundation/funding-resources/tool") is None
+
+
+def test_science_for_africa_empty_index_is_valid_empty_discovery(monkeypatch):
+    async def fake_index(source_id):
+        assert source_id == "science_for_africa"
+        return snapshot(source_id, "<html><body>No available opportunities</body></html>")
+
+    monkeypatch.setattr("observatory.sources.global_health_funders.fetch_funder_index", fake_index)
+    assert asyncio.run(discover_science_for_africa_opportunities(limit=20)) == ()
+
+
+def test_idrc_discovery_uses_only_open_calls_section(monkeypatch):
+    html = '''<h2>Open calls</h2><a href="/en/funding/stisa-2034">STISA</a><a href="/en/funding/anesa">ANeSA</a><h2>Closed calls</h2><a href="/en/funding/old-call">Old</a>'''
+
+    async def fake_index(source_id):
+        assert source_id == "idrc"
+        return snapshot(source_id, html)
+
+    monkeypatch.setattr("observatory.sources.global_health_funders.fetch_funder_index", fake_index)
+    urls = asyncio.run(discover_idrc_opportunities(limit=10))
+    assert urls == (
+        "https://idrc-crdi.ca/en/funding/stisa-2034",
+        "https://idrc-crdi.ca/en/funding/anesa",
+    )

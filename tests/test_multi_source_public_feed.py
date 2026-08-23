@@ -115,6 +115,12 @@ def test_multi_source_feed_keeps_eu_when_optional_sources_fail(monkeypatch):
     async def failed_wellcome(*, limit):
         return SourceCollectionResult("wellcome_funding", (), 0, 0, ("403",))
 
+    async def empty_sfa(*, limit):
+        return SourceCollectionResult("science_for_africa", (), 0, 0)
+
+    async def empty_idrc(*, limit):
+        return SourceCollectionResult("idrc", (), 0, 0)
+
     async def empty_fogarty(*, limit):
         return SourceCollectionResult("fogarty", (), 0, 0)
 
@@ -122,12 +128,16 @@ def test_multi_source_feed_keeps_eu_when_optional_sources_fail(monkeypatch):
     monkeypatch.setattr(multi, "collect_ukri", good_ukri)
     monkeypatch.setattr(multi, "collect_nihr", failed_nihr)
     monkeypatch.setattr(multi, "collect_wellcome", failed_wellcome)
+    monkeypatch.setattr(multi, "collect_science_for_africa", empty_sfa)
+    monkeypatch.setattr(multi, "collect_idrc", empty_idrc)
     monkeypatch.setattr(multi, "collect_fogarty", empty_fogarty)
 
     feed, results = asyncio.run(multi.fetch_multi_source_public_feed(generated_at=NOW, html_source_limit=5))
     assert feed.opportunity_count == 2
     assert {item.source_id for item in feed.opportunities} == {"eu_funding_tenders", "ukri_funding_finder"}
-    assert len(results) == 4
+    assert len(results) == 6
     assert results[1].errors == ("discovery failed",)
     assert results[2].errors == ("403",)
-    assert results[3].source_id == "fogarty"
+    assert results[3].source_id == "science_for_africa"
+    assert results[4].source_id == "idrc"
+    assert results[5].source_id == "fogarty"
