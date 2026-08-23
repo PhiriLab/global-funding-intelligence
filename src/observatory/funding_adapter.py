@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import ipaddress
+import posixpath
 import socket
 from dataclasses import dataclass
 from html.parser import HTMLParser
@@ -40,15 +41,32 @@ class _LinkParser(HTMLParser):
                 self.links.append(value)
 
 
+def _validated_port(parsed) -> int | None:
+    try:
+        return parsed.port
+    except ValueError as exc:
+        raise ValueError("funding source URL contains an invalid port") from exc
+
+
 def canonicalise_url(url: str) -> str:
     parsed = urlparse(url)
+    if parsed.username is not None or parsed.password is not None:
+        raise ValueError("funding source URLs must not contain user credentials")
     scheme = parsed.scheme.lower()
     host = (parsed.hostname or "").lower().rstrip(".")
-    port = parsed.port
-    netloc = host
+    port = _validated_port(parsed)
+    try:
+        host_ip = ipaddress.ip_address(host)
+    except ValueError:
+        host_ip = None
+    rendered_host = f"[{host}]" if isinstance(host_ip, ipaddress.IPv6Address) else host
+    netloc = rendered_host
     if port and not (scheme == "https" and port == 443):
-        netloc = f"{host}:{port}"
-    path = re_slashes(parsed.path or "/")
+        netloc = f"{rendered_host}:{port}"
+    raw_path = parsed.path or "/"
+    path = posixpath.normpath(re_slashes(raw_path))
+    if not path.startswith("/"):
+        path = f"/{path}"
     if path != "/":
         path = path.rstrip("/")
     query = urlencode(sorted((k, v) for k, v in parse_qsl(parsed.query, keep_blank_values=True) if k.lower() not in TRACKING_PARAMS))
@@ -72,7 +90,10 @@ def _candidate_links(base_url: str, html: str, keywords: tuple[str, ...]) -> tup
         host = (parsed.hostname or "").lower().rstrip(".")
         if parsed.scheme != "https" or host != base_host:
             continue
-        canonical = canonicalise_url(absolute)
+        try:
+            canonical = canonicalise_url(absolute)
+        except ValueError:
+            continue
         if any(keyword in canonical.lower() for keyword in keywords):
             found.add(canonical)
     return tuple(sorted(found))
@@ -85,8 +106,11 @@ def _is_public_ip(value: str) -> bool:
 
 def _assert_public_https_url(url: str) -> None:
     parsed = urlparse(url)
+    if parsed.username is not None or parsed.password is not None:
+        raise ValueError("funding source URLs must not contain user credentials")
     if parsed.scheme != "https" or not parsed.hostname:
         raise ValueError("primary funding sources must use a valid HTTPS URL")
+    port = _validated_port(parsed)
     host = parsed.hostname.rstrip(".")
     if host.lower() == "localhost":
         raise ValueError("local hosts are not allowed")
@@ -99,7 +123,7 @@ def _assert_public_https_url(url: str) -> None:
             raise ValueError("private, local, or reserved IP addresses are not allowed")
         return
     try:
-        addresses = {item[4][0] for item in socket.getaddrinfo(host, parsed.port or 443, type=socket.SOCK_STREAM)}
+        addresses = {item[4][0] for item in socket.getaddrinfo(host, port or 443, type=socket.SOCK_STREAM)}
     except socket.gaierror as exc:
         raise ValueError(f"unable to resolve funding source host: {host}") from exc
     if not addresses or any(not _is_public_ip(address) for address in addresses):
@@ -113,18 +137,15 @@ async def _read_limited_html(response: httpx.Response, max_bytes: int = MAX_BODY
     declared = response.headers.get("content-length")
     if declared:
         try:
-            if int(declared) > max_bytes:
-                raise ValueError("funding source response exceeds maximum allowed size")
-        except ValueError as exc:
-            if "exceeds" in str(exc):
-                raise
+            declared_size = int(declared)
+        except ValueError:
+            declared_size = None
+        if declared_size is not None and declared_size > max_bytes:
+            raise ValueError("funding source response exceeds maximum allowed size")
     body = bytearray()
     async for chunk in response.aiter_bytes():
         if len(body) + len(chunk) > max_bytes:
-            remaining = max_bytes - len(body)
-            if remaining > 0:
-                body.extend(chunk[:remaining])
-            break
+            raise ValueError("funding source response exceeds maximum allowed size")
         body.extend(chunk)
     return bytes(body)
 
