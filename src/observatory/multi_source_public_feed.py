@@ -8,7 +8,8 @@ from typing import Awaitable, Callable
 from .eu_public_feed import fetch_public_eu_feed
 from .funding_extract import ExtractedFundingRecord, to_opportunity
 from .funding_models import Opportunity, OpportunityStatus
-from .public_opportunity_feed import PublicOpportunityFeed, build_public_feed
+from .public_funding_export import resolve_source_state
+from .public_opportunity_feed import PublicOpportunityFeed, PublicSourceHealth, SourceHealthState, build_public_feed
 from .source_eligibility_evidence import summarise_eligibility_evidence
 from .structured_eligibility import extract_structured_eligibility
 from .sources.nihr_funding import discover_nihr_opportunities, fetch_nihr_opportunity
@@ -23,6 +24,29 @@ class SourceCollectionResult:
     discovered: int
     accepted: int
     errors: tuple[str, ...] = ()
+
+
+def source_health_from_collection(result: SourceCollectionResult, *, checked_at: datetime) -> PublicSourceHealth:
+    if checked_at.tzinfo is None:
+        raise ValueError("checked_at must be timezone-aware")
+    if result.accepted > 0 and not result.errors:
+        health = SourceHealthState.healthy
+    elif result.accepted > 0:
+        health = SourceHealthState.partial
+    elif result.errors:
+        health = SourceHealthState.unavailable
+    else:
+        health = SourceHealthState.empty
+    return PublicSourceHealth(
+        source_id=result.source_id,
+        source_state=resolve_source_state(result.source_id),
+        health=health,
+        checked_at=checked_at,
+        discovered=result.discovered,
+        accepted=result.accepted,
+        error_count=len(result.errors),
+        last_error=result.errors[-1] if result.errors else None,
+    )
 
 
 def _publishable_record(record: ExtractedFundingRecord) -> bool:
@@ -68,10 +92,7 @@ def _attach_structured_eligibility(record: ExtractedFundingRecord, opportunity: 
         "equity_or_lmic_requirement": structured.equity_or_lmic_requirement,
         "global_majority_access": structured.global_majority_access,
     }
-    if not any(
-        value not in (None, [], "unclear")
-        for value in updates.values()
-    ):
+    if not any(value not in (None, [], "unclear") for value in updates.values()):
         return opportunity
     note = opportunity.provenance_note or "Deterministic extraction from primary source."
     if structured.warnings:
@@ -188,4 +209,13 @@ async def fetch_multi_source_public_feed(
     combined: list[Opportunity] = eu_opportunities
     for result in results:
         combined.extend(result.opportunities)
-    return build_public_feed(combined, generated_at=generated_at), results
+
+    eu_result = SourceCollectionResult(
+        source_id="eu_funding_tenders",
+        opportunities=tuple(eu_opportunities),
+        discovered=eu_feed.opportunity_count,
+        accepted=eu_feed.opportunity_count,
+    )
+    source_health = [source_health_from_collection(eu_result, checked_at=generated_at)]
+    source_health.extend(source_health_from_collection(result, checked_at=generated_at) for result in results)
+    return build_public_feed(combined, generated_at=generated_at, source_health=source_health), results
