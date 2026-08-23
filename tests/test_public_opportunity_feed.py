@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
+import json
 
 import pytest
 
 from observatory.funding_models import Opportunity, OpportunityStatus
-from observatory.public_opportunity_feed import OpportunityLifecycle, classify_lifecycle, to_public_opportunity
+from observatory.public_opportunity_feed import OpportunityLifecycle, build_public_feed, classify_lifecycle, public_feed_json, to_public_opportunity
 from observatory.sources.eu_funding_tenders import is_edctp3_record, normalise_edctp3_records, normalise_eu_record
 
 
@@ -63,3 +64,31 @@ def test_non_structured_source_still_cannot_publish_opportunity_fields():
     opportunity = Opportunity(source_id="cepi", title="CEPI call", funder="CEPI", primary_url="https://cepi.net/calls-for-proposals", status=OpportunityStatus.open, source_checked_at=NOW)
     with pytest.raises(ValueError, match="only trusted structured sources"):
         to_public_opportunity(opportunity, now=NOW)
+
+
+def test_feed_deduplicates_by_source_and_external_id_preferring_freshest_record():
+    older = normalise_eu_record(eu_record(title="Older title"))
+    newer = normalise_eu_record(eu_record(title="Current title"))
+    older.source_checked_at = datetime(2026, 8, 22, 20, 0, tzinfo=timezone.utc)
+    newer.source_checked_at = datetime(2026, 8, 23, 0, 30, tzinfo=timezone.utc)
+    feed = build_public_feed([older, newer], generated_at=NOW)
+    assert feed.opportunity_count == 1
+    assert feed.opportunities[0].title == "Current title"
+
+
+def test_feed_orders_actionable_records_before_closed_and_by_deadline():
+    soon = normalise_eu_record(eu_record(identifier="EDCTP3-SOON", title="Soon", deadlineDate="2026-08-25T17:00:00Z"))
+    later = normalise_eu_record(eu_record(identifier="EDCTP3-LATER", title="Later", deadlineDate="2026-12-01T17:00:00Z"))
+    closed = normalise_eu_record(eu_record(identifier="EDCTP3-CLOSED", title="Closed", statusDescription="Closed", deadlineDate="2026-08-01T17:00:00Z"))
+    feed = build_public_feed([closed, later, soon], generated_at=NOW)
+    assert [item.title for item in feed.opportunities] == ["Soon", "Later", "Closed"]
+
+
+def test_json_feed_is_machine_readable_and_excludes_none_fields():
+    raw = public_feed_json([normalise_eu_record(eu_record())], generated_at=NOW, indent=None)
+    payload = json.loads(raw)
+    assert payload["schema_version"] == 1
+    assert payload["opportunity_count"] == 1
+    assert payload["generated_at"] == "2026-08-23T01:00:00Z"
+    assert payload["opportunities"][0]["eligibility"] == "Not determined — verify at source"
+    assert "currency" not in payload["opportunities"][0]
