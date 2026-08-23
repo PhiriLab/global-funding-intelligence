@@ -11,6 +11,7 @@ config/funding_sources.yaml
 config/country_classification.yaml
 config/public_export_allowlist.txt
 src/observatory/country_data.py
+src/observatory/eu_public_feed.py
 src/observatory/funding_adapter.py
 src/observatory/funding_decision.py
 src/observatory/funding_extract.py
@@ -25,6 +26,7 @@ src/observatory/sources/nihr_funding.py
 src/observatory/sources/wellcome_funding.py
 src/observatory/sources/eu_funding_tenders.py
 src/observatory/sources/global_health_funders.py
+tests/test_eu_public_feed.py
 tests/test_public_funding_export.py
 tests/test_public_opportunity_feed.py
 tests/test_priority_global_health_profiles.py
