@@ -1,5 +1,5 @@
 version: 3
-verified_at: 2026-08-22
+verified_at: 2026-08-23
 policy:
   primary_source_only: true
   aggregator_discovery_only: true
@@ -18,6 +18,16 @@ sources:
     priority: critical
     global_majority: direct
     notes: Detail call pages are crawlable and expose deadline/funding text, but the funding index can legitimately show no current opportunities while call/resource pages remain accessible. Treat detail-page discovery as beta and never infer live-open state from the index alone.
+
+  eu_funding_tenders:
+    name: European Commission Funding & Tenders
+    region: Europe
+    primary_url: https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen/opportunities/topic-search
+    ingestion: public_rest_api
+    automation: structured_beta
+    priority: critical
+    global_majority: mixed
+    notes: Horizon Europe and related opportunity metadata are normalized from the European Commission public REST API. EDCTP3 is treated as a deterministic programme subset of this canonical EU feed. Eligibility and consortium-country rules remain unverified until explicit structured rules are available.
 
   tdr_who:
     name: WHO/TDR
