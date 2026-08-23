@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from .country_data import classify_country
+
 
 @dataclass(frozen=True)
 class StructuredEligibility:
@@ -93,6 +95,37 @@ def _bool(value: str | None) -> bool | None:
     return None
 
 
+def _is_global_majority_country(code: str) -> bool | None:
+    classification = classify_country(code)
+    if classification is None:
+        return None
+    if classification.oda_eligible is True:
+        return True
+    if classification.income_group in {"LIC", "LMIC", "UMIC"}:
+        return True
+    if classification.oda_eligible is False and classification.income_group == "HIC":
+        return False
+    return None
+
+
+def _global_majority_route(
+    eligible_countries: tuple[str, ...],
+    lead_countries: tuple[str, ...],
+    partner_countries: tuple[str, ...],
+    eligible_income_groups: tuple[str, ...],
+) -> str:
+    if any(group in {"LIC", "LMIC", "UMIC"} for group in eligible_income_groups):
+        return "direct"
+    direct_codes = lead_countries or eligible_countries
+    direct_states = [_is_global_majority_country(code) for code in direct_codes]
+    if any(state is True for state in direct_states):
+        return "direct"
+    partner_states = [_is_global_majority_country(code) for code in partner_countries]
+    if any(state is True for state in partner_states) and direct_codes:
+        return "partner_only"
+    return "unclear"
+
+
 def extract_structured_eligibility(source_id: str, lines: list[str]) -> StructuredEligibility:
     labels = _SOURCE_LABELS.get(source_id)
     if not labels:
@@ -111,11 +144,12 @@ def extract_structured_eligibility(source_id: str, lines: list[str]) -> Structur
     if income and len(income) != len(allowed_income):
         warnings.append("ignored unsupported income-group values")
 
-    gm = "unclear"
-    if countries["lead_countries"] or countries["eligible_countries"] or allowed_income:
-        gm = "direct"
-    elif countries["partner_countries"]:
-        gm = "partner_only"
+    gm = _global_majority_route(
+        countries["eligible_countries"],
+        countries["lead_countries"],
+        countries["partner_countries"],
+        allowed_income,
+    )
 
     return StructuredEligibility(
         applicant_types=_csv(raw.get("applicant_types")),
