@@ -11,7 +11,7 @@ from observatory.public_opportunity_feed import build_public_feed
 NOW = datetime(2026, 8, 23, 1, 0, tzinfo=timezone.utc)
 
 
-def extracted(source_id: str, url: str, title: str, *, status: str = "Open") -> ExtractedFundingRecord:
+def extracted(source_id: str, url: str, title: str, *, status: str = "Open", eligibility_evidence=()) -> ExtractedFundingRecord:
     return ExtractedFundingRecord(
         source_id=source_id,
         primary_url=url,
@@ -19,6 +19,7 @@ def extracted(source_id: str, url: str, title: str, *, status: str = "Open") -> 
         funder=source_id,
         status=status,
         closing_at=datetime(2026, 10, 1, tzinfo=timezone.utc),
+        eligibility_evidence=eligibility_evidence,
         source_hash="fixture",
     )
 
@@ -41,6 +42,31 @@ def test_html_collector_isolates_detail_failures_and_accepts_structured_calls():
     assert len(result.opportunities) == 1
     assert result.opportunities[0].title == "Live UKRI call"
     assert len(result.errors) == 1 and "blocked" in result.errors[0]
+
+
+def test_html_collector_preserves_source_eligibility_evidence_without_route_inference():
+    async def discover(limit):
+        return ("https://www.ukri.org/opportunity/example",)
+
+    async def fetch_detail(url):
+        return extracted(
+            "ukri_funding_finder",
+            url,
+            "UKRI example",
+            eligibility_evidence=(
+                "You must be based at a UK research organisation eligible for UKRI funding.",
+                "International project co-leads may be included.",
+            ),
+        )
+
+    result = asyncio.run(multi._collect_html_source("ukri_funding_finder", discover, fetch_detail, limit=1))
+    opportunity = result.opportunities[0]
+    assert "UK research-organisation requirement stated" in opportunity.provenance_note
+    assert "international participation wording stated" in opportunity.provenance_note
+    assert opportunity.eligible_countries == []
+    assert opportunity.lead_countries == []
+    assert opportunity.partner_countries == []
+    assert opportunity.global_majority_access == "unclear"
 
 
 def test_html_collector_rejects_closed_records():

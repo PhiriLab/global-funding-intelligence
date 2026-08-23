@@ -9,6 +9,7 @@ from .eu_public_feed import fetch_public_eu_feed
 from .funding_extract import ExtractedFundingRecord, to_opportunity
 from .funding_models import Opportunity, OpportunityStatus
 from .public_opportunity_feed import PublicOpportunityFeed, build_public_feed
+from .source_eligibility_evidence import summarise_eligibility_evidence
 from .sources.nihr_funding import discover_nihr_opportunities, fetch_nihr_opportunity
 from .sources.ukri_funding import discover_ukri_opportunities, fetch_ukri_opportunity
 from .sources.wellcome_funding import discover_wellcome_opportunities, fetch_wellcome_opportunity
@@ -42,6 +43,15 @@ def _publishable_record(record: ExtractedFundingRecord) -> bool:
     ) or record.rolling
 
 
+def _attach_eligibility_evidence(record: ExtractedFundingRecord, opportunity: Opportunity) -> Opportunity:
+    summary = summarise_eligibility_evidence(record.source_id, record.eligibility_evidence)
+    if not summary.note:
+        return opportunity
+    base = opportunity.provenance_note or "Deterministic extraction from primary source."
+    note = f"{base} {summary.note}"
+    return opportunity.model_copy(update={"provenance_note": note})
+
+
 async def _collect_html_source(
     source_id: str,
     discover: Callable[[int], Awaitable[tuple[str, ...]]],
@@ -73,7 +83,7 @@ async def _collect_html_source(
             continue
         if not _publishable_record(result):
             continue
-        opportunity = to_opportunity(result)
+        opportunity = _attach_eligibility_evidence(result, to_opportunity(result))
         if opportunity.status == OpportunityStatus.closed:
             continue
         opportunities.append(opportunity)
