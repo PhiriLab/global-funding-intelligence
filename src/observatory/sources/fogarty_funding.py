@@ -10,7 +10,7 @@ from observatory.funding_models import Opportunity, OpportunityStatus
 
 FOGARTY_FUNDING_URL = "https://www.fic.nih.gov/Funding/Pages/Fogarty-Funding-Opps.aspx"
 _ALLOWED_ANNOUNCEMENT_HOSTS = {"grants.nih.gov", "www.grants.gov", "grants.gov"}
-_ANNOUNCEMENT_ID = re.compile(r"\b(?:PAR|RFA|PA)-[A-Z]{2}-\d{3}\b", re.IGNORECASE)
+_ANNOUNCEMENT_ID = re.compile(r"\b(?:PAR|RFA|PA)-[A-Z0-9]{2}-\d{3}\b", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
