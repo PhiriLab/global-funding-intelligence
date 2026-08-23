@@ -23,6 +23,7 @@ src/observatory/public_funding_export.py
 src/observatory/public_opportunity_feed.py
 src/observatory/publish_public_opportunities.py
 src/observatory/source_eligibility_evidence.py
+src/observatory/structured_eligibility.py
 src/observatory/untrusted.py
 src/observatory/sources/ukri_funding.py
 src/observatory/sources/nihr_funding.py
@@ -38,6 +39,8 @@ tests/test_priority_global_health_profiles.py
 tests/test_funding_adapter.py
 tests/test_funding_identity.py
 tests/test_source_eligibility_evidence.py
+tests/test_structured_eligibility.py
+tests/test_structured_eligibility_integration.py
 tests/test_web_interface.py
 tests/fixtures/funding/idrc_stisa_2034.html
 tests/fixtures/funding/sfa_gen_impact_eoi.html
