@@ -10,6 +10,7 @@ from .funding_extract import ExtractedFundingRecord, to_opportunity
 from .funding_models import Opportunity, OpportunityStatus
 from .public_opportunity_feed import PublicOpportunityFeed, build_public_feed
 from .source_eligibility_evidence import summarise_eligibility_evidence
+from .structured_eligibility import extract_structured_eligibility
 from .sources.nihr_funding import discover_nihr_opportunities, fetch_nihr_opportunity
 from .sources.ukri_funding import discover_ukri_opportunities, fetch_ukri_opportunity
 from .sources.wellcome_funding import discover_wellcome_opportunities, fetch_wellcome_opportunity
@@ -48,8 +49,34 @@ def _attach_eligibility_evidence(record: ExtractedFundingRecord, opportunity: Op
     if not summary.note:
         return opportunity
     base = opportunity.provenance_note or "Deterministic extraction from primary source."
-    note = f"{base} {summary.note}"
-    return opportunity.model_copy(update={"provenance_note": note})
+    return opportunity.model_copy(update={"provenance_note": f"{base} {summary.note}"})
+
+
+def _attach_structured_eligibility(record: ExtractedFundingRecord, opportunity: Opportunity) -> Opportunity:
+    structured = extract_structured_eligibility(record.source_id, list(record.eligibility_evidence))
+    updates = {
+        "applicant_types": list(structured.applicant_types),
+        "eligible_countries": list(structured.eligible_countries),
+        "excluded_countries": list(structured.excluded_countries),
+        "lead_countries": list(structured.lead_countries),
+        "partner_countries": list(structured.partner_countries),
+        "eligible_income_groups": list(structured.eligible_income_groups),
+        "oda_only": structured.oda_only,
+        "consortium_required": structured.consortium_required,
+        "local_partner_required": structured.local_partner_required,
+        "lead_location_rule": structured.lead_location_rule,
+        "equity_or_lmic_requirement": structured.equity_or_lmic_requirement,
+        "global_majority_access": structured.global_majority_access,
+    }
+    if not any(
+        value not in (None, [], "unclear")
+        for value in updates.values()
+    ):
+        return opportunity
+    note = opportunity.provenance_note or "Deterministic extraction from primary source."
+    if structured.warnings:
+        note += " Structured eligibility warnings: " + "; ".join(structured.warnings) + "."
+    return opportunity.model_copy(update={**updates, "provenance_note": note})
 
 
 async def _collect_html_source(
@@ -83,7 +110,9 @@ async def _collect_html_source(
             continue
         if not _publishable_record(result):
             continue
-        opportunity = _attach_eligibility_evidence(result, to_opportunity(result))
+        opportunity = to_opportunity(result)
+        opportunity = _attach_eligibility_evidence(result, opportunity)
+        opportunity = _attach_structured_eligibility(result, opportunity)
         if opportunity.status == OpportunityStatus.closed:
             continue
         opportunities.append(opportunity)
