@@ -13,6 +13,7 @@ from observatory.sources.global_health_funders import (
     discover_idrc_opportunities,
     discover_science_for_africa_opportunities,
     extract_funder_opportunity,
+    grand_challenges_canada_watch_state,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures" / "funding"
@@ -128,3 +129,25 @@ def test_idrc_discovery_uses_only_open_calls_section(monkeypatch):
         "https://idrc-crdi.ca/en/funding/stisa-2034",
         "https://idrc-crdi.ca/en/funding/anesa",
     )
+
+
+def test_gcc_watcher_accepts_only_explicit_empty_state(monkeypatch):
+    async def fake_index(source_id):
+        assert source_id == "grand_challenges_canada"
+        return snapshot(source_id, "<p>There are currently no open funding opportunities.</p>")
+
+    monkeypatch.setattr("observatory.sources.global_health_funders.fetch_funder_index", fake_index)
+    empty, note = asyncio.run(grand_challenges_canada_watch_state())
+    assert empty is True
+    assert "no open funding opportunities" in note.lower()
+
+
+def test_gcc_watcher_escalates_changed_or_ambiguous_state(monkeypatch):
+    async def fake_index(source_id):
+        assert source_id == "grand_challenges_canada"
+        return snapshot(source_id, "<h2>Apply for funding</h2><p>See current challenge opportunities.</p>")
+
+    monkeypatch.setattr("observatory.sources.global_health_funders.fetch_funder_index", fake_index)
+    empty, note = asyncio.run(grand_challenges_canada_watch_state())
+    assert empty is False
+    assert "verify" in note.lower()

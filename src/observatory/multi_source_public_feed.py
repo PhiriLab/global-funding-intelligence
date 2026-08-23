@@ -17,6 +17,7 @@ from .sources.global_health_funders import (
     discover_idrc_opportunities,
     discover_science_for_africa_opportunities,
     extract_funder_opportunity,
+    grand_challenges_canada_watch_state,
 )
 from .sources.nihr_funding import discover_nihr_opportunities, fetch_nihr_opportunity
 from .sources.ukri_funding import discover_ukri_opportunities, fetch_ukri_opportunity
@@ -184,6 +185,28 @@ async def collect_idrc(*, limit: int = 20) -> SourceCollectionResult:
     return await _collect_html_source("idrc", discover_idrc_opportunities, fetch_detail, limit=limit)
 
 
+async def collect_grand_challenges_canada_watch() -> SourceCollectionResult:
+    try:
+        confirmed_empty, note = await grand_challenges_canada_watch_state()
+    except Exception as exc:
+        return SourceCollectionResult(
+            source_id="grand_challenges_canada",
+            opportunities=(),
+            discovered=0,
+            accepted=0,
+            errors=(f"watch failed: {type(exc).__name__}: {exc}",),
+        )
+    if confirmed_empty:
+        return SourceCollectionResult("grand_challenges_canada", (), 0, 0)
+    return SourceCollectionResult(
+        "grand_challenges_canada",
+        (),
+        0,
+        0,
+        (note,),
+    )
+
+
 async def collect_fogarty(*, limit: int = 20) -> SourceCollectionResult:
     try:
         opportunities = await collect_fogarty_opportunities(limit=limit)
@@ -244,15 +267,16 @@ async def fetch_multi_source_public_feed(
         for item in eu_feed.opportunities
     ]
 
-    ukri, nihr, wellcome, sfa, idrc, fogarty = await asyncio.gather(
+    ukri, nihr, wellcome, sfa, idrc, gcc_watch, fogarty = await asyncio.gather(
         collect_ukri(limit=html_source_limit),
         collect_nihr(limit=html_source_limit),
         collect_wellcome(limit=html_source_limit),
         collect_science_for_africa(limit=html_source_limit),
         collect_idrc(limit=html_source_limit),
+        collect_grand_challenges_canada_watch(),
         collect_fogarty(limit=html_source_limit),
     )
-    results = (ukri, nihr, wellcome, sfa, idrc, fogarty)
+    results = (ukri, nihr, wellcome, sfa, idrc, gcc_watch, fogarty)
     combined: list[Opportunity] = eu_opportunities
     for result in results:
         combined.extend(result.opportunities)
