@@ -18,6 +18,24 @@ class OpportunityLifecycle(str, Enum):
     unknown = "unknown"
 
 
+class SourceHealthState(str, Enum):
+    healthy = "healthy"
+    partial = "partial"
+    unavailable = "unavailable"
+    empty = "empty"
+
+
+class PublicSourceHealth(BaseModel):
+    source_id: str
+    source_state: SourceState
+    health: SourceHealthState
+    checked_at: datetime
+    discovered: int = 0
+    accepted: int = 0
+    error_count: int = 0
+    last_error: str | None = None
+
+
 class PublicOpportunityRecord(BaseModel):
     source_id: str
     external_id: str | None = None
@@ -61,6 +79,7 @@ class PublicOpportunityFeed(BaseModel):
     generated_at: datetime
     opportunity_count: int
     opportunities: list[PublicOpportunityRecord]
+    source_health: list[PublicSourceHealth] = Field(default_factory=list)
 
 
 def classify_lifecycle(opportunity: Opportunity, *, now: datetime | None = None, closing_soon_days: int = 30) -> OpportunityLifecycle:
@@ -155,7 +174,12 @@ def _record_identity(record: PublicOpportunityRecord) -> tuple[str, str]:
     return record.source_id, record.external_id or str(record.primary_url)
 
 
-def build_public_feed(opportunities: list[Opportunity] | tuple[Opportunity, ...], *, generated_at: datetime | None = None) -> PublicOpportunityFeed:
+def build_public_feed(
+    opportunities: list[Opportunity] | tuple[Opportunity, ...],
+    *,
+    generated_at: datetime | None = None,
+    source_health: list[PublicSourceHealth] | tuple[PublicSourceHealth, ...] = (),
+) -> PublicOpportunityFeed:
     generated_at = generated_at or datetime.now(timezone.utc)
     if generated_at.tzinfo is None:
         raise ValueError("generated_at must be timezone-aware")
@@ -186,9 +210,21 @@ def build_public_feed(opportunities: list[Opportunity] | tuple[Opportunity, ...]
             item.external_id or str(item.primary_url),
         ),
     )
-    return PublicOpportunityFeed(generated_at=generated_at, opportunity_count=len(ordered), opportunities=ordered)
+    ordered_health = sorted(source_health, key=lambda item: item.source_id)
+    return PublicOpportunityFeed(
+        generated_at=generated_at,
+        opportunity_count=len(ordered),
+        opportunities=ordered,
+        source_health=list(ordered_health),
+    )
 
 
-def public_feed_json(opportunities: list[Opportunity] | tuple[Opportunity, ...], *, generated_at: datetime | None = None, indent: int | None = 2) -> str:
-    feed = build_public_feed(opportunities, generated_at=generated_at)
+def public_feed_json(
+    opportunities: list[Opportunity] | tuple[Opportunity, ...],
+    *,
+    generated_at: datetime | None = None,
+    source_health: list[PublicSourceHealth] | tuple[PublicSourceHealth, ...] = (),
+    indent: int | None = 2,
+) -> str:
+    feed = build_public_feed(opportunities, generated_at=generated_at, source_health=source_health)
     return feed.model_dump_json(indent=indent, exclude_none=True)
