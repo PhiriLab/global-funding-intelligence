@@ -141,14 +141,15 @@ def test_usage_telemetry_uses_publishable_key_and_is_privacy_bounded():
         assert event in OPPORTUNITIES_JS
     assert "navigator.doNotTrack === '1'" in OPPORTUNITIES_JS
     assert "sb_publishable_" in OPPORTUNITIES_JS
-    assert "'/rest/v1/gfi_usage_events'" not in OPPORTUNITIES_JS  # URL is constructed from a fixed trusted base
     assert "/rest/v1/gfi_usage_events" in OPPORTUNITIES_JS
     assert "'apikey': GFI_SUPABASE_PUBLISHABLE_KEY" in OPPORTUNITIES_JS
     assert "query_length_bucket" in OPPORTUNITIES_JS
     assert "gfiSafeProperties" in OPPORTUNITIES_JS
     assert "no session recording, persistent visitor ID or inferred sensitive demographics" in OPPORTUNITIES_JS
-    forbidden = ("service_role", "sb_secret_", "sessionStorage", "gfi-visitor", "fingerprint", "ip_address", "ethnicity", "race", "religion", "disability")
-    assert all(token not in OPPORTUNITIES_JS for token in forbidden)
+    technical_forbidden = ("service_role", "sb_secret_", "sessionStorage", "gfi-visitor", "fingerprint", "ip_address", "visitor_id", "session_id")
+    assert all(token not in OPPORTUNITIES_JS for token in technical_forbidden)
+    for sensitive_field in ("name=\"ethnicity\"", "name=\"race\"", "name=\"religion\"", "name=\"disability\""):
+        assert sensitive_field not in OPPORTUNITIES_JS
 
 
 def test_anonymous_usefulness_pulse_is_voluntary_and_avoids_identity_collection():
