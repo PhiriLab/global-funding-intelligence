@@ -41,6 +41,13 @@ class PublicOpportunityRecord(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
+class PublicOpportunityFeed(BaseModel):
+    schema_version: int = 1
+    generated_at: datetime
+    opportunity_count: int
+    opportunities: list[PublicOpportunityRecord]
+
+
 def classify_lifecycle(opportunity: Opportunity, *, now: datetime | None = None, closing_soon_days: int = 30) -> OpportunityLifecycle:
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None:
@@ -97,3 +104,46 @@ def to_public_opportunity(opportunity: Opportunity, *, now: datetime | None = No
         provenance_note=opportunity.provenance_note,
         warnings=warnings,
     )
+
+
+def _record_identity(record: PublicOpportunityRecord) -> tuple[str, str]:
+    return record.source_id, record.external_id or str(record.primary_url)
+
+
+def build_public_feed(opportunities: list[Opportunity] | tuple[Opportunity, ...], *, generated_at: datetime | None = None) -> PublicOpportunityFeed:
+    generated_at = generated_at or datetime.now(timezone.utc)
+    if generated_at.tzinfo is None:
+        raise ValueError("generated_at must be timezone-aware")
+    deduped: dict[tuple[str, str], PublicOpportunityRecord] = {}
+    for opportunity in opportunities:
+        record = to_public_opportunity(opportunity, now=generated_at)
+        key = _record_identity(record)
+        existing = deduped.get(key)
+        if existing is None or record.source_checked_at > existing.source_checked_at:
+            deduped[key] = record
+    lifecycle_rank = {
+        OpportunityLifecycle.closing_soon: 0,
+        OpportunityLifecycle.open: 1,
+        OpportunityLifecycle.rolling: 2,
+        OpportunityLifecycle.upcoming: 3,
+        OpportunityLifecycle.unknown: 4,
+        OpportunityLifecycle.closed: 5,
+    }
+    sentinel = datetime.max.replace(tzinfo=timezone.utc)
+    ordered = sorted(
+        deduped.values(),
+        key=lambda item: (
+            lifecycle_rank[item.lifecycle],
+            item.closing_at or sentinel,
+            item.funder.casefold(),
+            item.title.casefold(),
+            item.source_id,
+            item.external_id or str(item.primary_url),
+        ),
+    )
+    return PublicOpportunityFeed(generated_at=generated_at, opportunity_count=len(ordered), opportunities=ordered)
+
+
+def public_feed_json(opportunities: list[Opportunity] | tuple[Opportunity, ...], *, generated_at: datetime | None = None, indent: int | None = 2) -> str:
+    feed = build_public_feed(opportunities, generated_at=generated_at)
+    return feed.model_dump_json(indent=indent, exclude_none=True)
