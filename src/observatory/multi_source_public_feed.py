@@ -13,6 +13,11 @@ from .public_opportunity_feed import PublicOpportunityFeed, PublicSourceHealth, 
 from .source_eligibility_evidence import summarise_eligibility_evidence
 from .structured_eligibility import extract_structured_eligibility
 from .sources.fogarty_funding import collect_fogarty_opportunities
+from .sources.global_health_funders import (
+    discover_idrc_opportunities,
+    discover_science_for_africa_opportunities,
+    extract_funder_opportunity,
+)
 from .sources.nihr_funding import discover_nihr_opportunities, fetch_nihr_opportunity
 from .sources.ukri_funding import discover_ukri_opportunities, fetch_ukri_opportunity
 from .sources.wellcome_funding import discover_wellcome_opportunities, fetch_wellcome_opportunity
@@ -160,6 +165,25 @@ async def collect_wellcome(*, limit: int = 20) -> SourceCollectionResult:
     return await _collect_html_source("wellcome_funding", discover_wellcome_opportunities, fetch_wellcome_opportunity, limit=limit)
 
 
+async def collect_science_for_africa(*, limit: int = 20) -> SourceCollectionResult:
+    async def fetch_detail(url: str) -> ExtractedFundingRecord:
+        return await extract_funder_opportunity("science_for_africa", url)
+
+    return await _collect_html_source(
+        "science_for_africa",
+        discover_science_for_africa_opportunities,
+        fetch_detail,
+        limit=limit,
+    )
+
+
+async def collect_idrc(*, limit: int = 20) -> SourceCollectionResult:
+    async def fetch_detail(url: str) -> ExtractedFundingRecord:
+        return await extract_funder_opportunity("idrc", url)
+
+    return await _collect_html_source("idrc", discover_idrc_opportunities, fetch_detail, limit=limit)
+
+
 async def collect_fogarty(*, limit: int = 20) -> SourceCollectionResult:
     try:
         opportunities = await collect_fogarty_opportunities(limit=limit)
@@ -220,13 +244,15 @@ async def fetch_multi_source_public_feed(
         for item in eu_feed.opportunities
     ]
 
-    ukri, nihr, wellcome, fogarty = await asyncio.gather(
+    ukri, nihr, wellcome, sfa, idrc, fogarty = await asyncio.gather(
         collect_ukri(limit=html_source_limit),
         collect_nihr(limit=html_source_limit),
         collect_wellcome(limit=html_source_limit),
+        collect_science_for_africa(limit=html_source_limit),
+        collect_idrc(limit=html_source_limit),
         collect_fogarty(limit=html_source_limit),
     )
-    results = (ukri, nihr, wellcome, fogarty)
+    results = (ukri, nihr, wellcome, sfa, idrc, fogarty)
     combined: list[Opportunity] = eu_opportunities
     for result in results:
         combined.extend(result.opportunities)
