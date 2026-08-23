@@ -172,12 +172,12 @@ sources:
   fogarty:
     name: Fogarty International Center
     region: global
-    primary_url: https://www.fic.nih.gov/Funding/Pages/default.aspx
-    ingestion: structured_html
-    automation: index_only
+    primary_url: https://www.fic.nih.gov/Funding/Pages/Fogarty-Funding-Opps.aspx
+    ingestion: structured_html_table
+    automation: structured_beta
     priority: critical
     global_majority: direct
-    notes: NIH-linked global health research and training; final FOA rules come from NIH notice/grants.gov records.
+    notes: Current funding rows are captured from the authoritative Fogarty table and resolve to NIH or Grants.gov announcement URLs. Fogarty publishes date-only deadlines, so the engine preserves that date in provenance rather than inventing a universal submission timestamp. Foreign-organisation and foreign-component eligibility remain call-specific and unverified until structured from the authoritative announcement.
 
   nih:
     name: US National Institutes of Health
@@ -187,7 +187,7 @@ sources:
     automation: partial
     priority: critical
     global_majority: mixed
-    notes: API adapter still required before live structured coverage; distinguish foreign-component from foreign-organisation eligibility.
+    notes: From FY2026 Grants.gov is the single official source for new NIH NOFOs; the NIH Guide remains authoritative for policy/informational notices and legacy announcements. Distinguish foreign-component from foreign-organisation eligibility.
 
   novo_nordisk_foundation:
     name: Novo Nordisk Foundation
