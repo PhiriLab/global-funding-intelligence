@@ -19,8 +19,8 @@ _SOURCE_TERMS: dict[str, tuple[tuple[str, str], ...]] = {
     "ukri_funding_finder": (
         (r"\bUK research organisation\b", "UK research-organisation requirement stated"),
         (r"\bmust be based\b", "applicant-location requirement stated"),
-        (r"\binternational co-?lead\b|\binternational partner\b", "international participation wording stated"),
-        (r"\bproject lead\b|\bproject co-?lead\b", "lead/co-lead role wording stated"),
+        (r"\binternational(?:\s+\w+){0,3}\s+co-?leads?\b|\binternational(?:\s+\w+){0,3}\s+partners?\b", "international participation wording stated"),
+        (r"\bproject leads?\b|\bproject co-?leads?\b", "lead/co-lead role wording stated"),
     ),
     "nihr_funding": (
         (r"\bcontracting organisation\b", "contracting-organisation requirement stated"),
@@ -53,7 +53,7 @@ def summarise_eligibility_evidence(source_id: str, evidence: tuple[str, ...]) ->
         signals.append("consortium wording stated")
     if re.search(r"\bODA\b", combined, flags=re.I):
         signals.append("ODA wording stated")
-    if re.search(r"\bpartner\b", combined, flags=re.I):
+    if re.search(r"\bpartners?\b", combined, flags=re.I):
         signals.append("partner wording stated")
 
     signals = list(dict.fromkeys(signals))
