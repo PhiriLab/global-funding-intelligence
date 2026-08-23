@@ -1,0 +1,69 @@
+name: Partnership & sponsorship enquiry
+description: Contact PhiriLab about supporting, sponsoring, partnering with, or contributing to Global Funding Intelligence.
+title: "Partnership enquiry: "
+labels: ["partnership"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your interest in Global Funding Intelligence. This public-interest project welcomes collaboration from funders, research organisations, foundations, technology partners and sponsors.
+
+        Support does not confer influence over opportunity verification, eligibility assessment, source-state decisions or ranking.
+  - type: input
+    id: organisation
+    attributes:
+      label: Organisation
+      description: Name of the funder, institution, company, foundation or network you represent.
+      placeholder: Organisation name
+    validations:
+      required: true
+  - type: input
+    id: contact_name
+    attributes:
+      label: Contact name
+      placeholder: Your name
+    validations:
+      required: true
+  - type: input
+    id: contact_email
+    attributes:
+      label: Contact email
+      description: A professional email address where PhiriLab can respond.
+      placeholder: name@organisation.org
+    validations:
+      required: true
+  - type: dropdown
+    id: enquiry_type
+    attributes:
+      label: Enquiry type
+      options:
+        - Funder representation or source integration
+        - Sponsorship or financial support
+        - Research or institutional partnership
+        - Technical, data or infrastructure partnership
+        - Global Majority access or capacity-building collaboration
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed support or collaboration
+      description: Briefly describe what you would like to support, contribute or explore.
+      placeholder: We would like to...
+    validations:
+      required: true
+  - type: textarea
+    id: message
+    attributes:
+      label: Additional context
+      description: Include any useful background, links, proposed timescale or next steps.
+    validations:
+      required: false
+  - type: checkboxes
+    id: independence
+    attributes:
+      label: Independence acknowledgement
+      options:
+        - label: I understand that sponsorship or partnership does not influence verification, eligibility assessment, source-state decisions or ranking.
+          required: true
