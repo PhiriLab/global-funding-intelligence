@@ -18,7 +18,8 @@
       <span><strong>Global Funding Intelligence</strong><small>by PhiriLab</small></span>
     </a>
     <nav aria-label="Primary navigation">
-      <a href="#discover">Discover</a>
+      <a href="#opportunities">Opportunities</a>
+      <a href="#discover">Funders</a>
       <a href="#resources">Grant resources</a>
       <a href="#how">How it works</a>
       <a href="#about">About</a>
@@ -37,8 +38,8 @@
         <h1>Find funding opportunities with evidence, provenance and clear uncertainty.</h1>
         <p class="lead">A public funding intelligence hub for researchers, innovators, charities, universities, clinicians and community organisations. Search trusted funders, understand what has actually been verified, and go directly to the authoritative source before you invest time in a bid.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#discover">Explore funding sources</a>
-          <a class="button" href="#resources">Understand the grant resources</a>
+          <a class="button primary" href="#opportunities">Explore verified opportunities</a>
+          <a class="button" href="#discover">Browse funding sources</a>
         </div>
         <div class="trust-strip" aria-label="Trust principles">
           <span>Eligibility is never guessed</span>
@@ -55,9 +56,36 @@
       </aside>
     </section>
 
+    <section id="opportunities" class="section opportunity-section">
+      <div class="section-head">
+        <div><p class="eyebrow">VERIFIED OPPORTUNITIES</p><h2>Call-level intelligence, when the source supports it</h2></div>
+        <p>Only trusted structured sources can publish call-level records here. Missing fields remain unknown, and eligibility is never inferred from unstructured source text.</p>
+      </div>
+      <div class="opportunity-toolbar" role="search" aria-label="Opportunity filters">
+        <label>Lifecycle
+          <select id="opportunityLifecycleFilter">
+            <option value="all">All lifecycle states</option>
+            <option value="closing_soon">Closing soon</option>
+            <option value="open">Open</option>
+            <option value="rolling">Rolling</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="unknown">Unknown</option>
+            <option value="closed">Closed</option>
+          </select>
+        </label>
+        <label>Search opportunities
+          <input id="opportunitySearch" type="search" placeholder="e.g. EDCTP3, mental health, Horizon" autocomplete="off" />
+        </label>
+        <div class="opportunity-summary" aria-live="polite"><strong id="opportunityCount">0</strong><span>matching opportunities</span></div>
+      </div>
+      <p id="opportunityFeedStatus" class="feed-status">Loading verified opportunity feed…</p>
+      <div id="opportunityCards" class="opportunity-grid" aria-live="polite" aria-busy="false"></div>
+      <div class="notice"><strong>Decision-support boundary:</strong> opportunity status, dates and amounts are shown only when published through a trusted structured source. Final eligibility, consortium rules and submission requirements remain authoritative at the funder’s primary call page.</div>
+    </section>
+
     <section id="discover" class="section">
       <div class="section-head">
-        <div><p class="eyebrow">DISCOVER</p><h2>Start with your context</h2></div>
+        <div><p class="eyebrow">FUNDER DIRECTORY</p><h2>Start with your context</h2></div>
         <p>Use the filters to narrow authoritative funders. Results prioritise relevance without converting incomplete web text into a false eligibility verdict.</p>
       </div>
       <div class="filter-grid" role="search" aria-label="Funding source filters">
@@ -150,7 +178,7 @@
 
     <section class="cta">
       <div><p class="eyebrow">FOR COLLEAGUES & COMMUNITIES</p><h2>Use it, share it, improve it.</h2><p>Built to reduce the friction between discovering a call and understanding whether it deserves your time.</p></div>
-      <div class="hero-actions"><a class="button primary" href="#discover">Browse funding sources</a><a class="button" href="https://github.com/PhiriLab/global-funding-intelligence/issues/new" target="_blank" rel="noreferrer">Suggest a funder</a></div>
+      <div class="hero-actions"><a class="button primary" href="#opportunities">Browse opportunities</a><a class="button" href="https://github.com/PhiriLab/global-funding-intelligence/issues/new" target="_blank" rel="noreferrer">Suggest a funder</a></div>
     </section>
   </main>
 
@@ -161,5 +189,6 @@
 
   <footer><span>Global Funding Intelligence • PhiriLab</span><span>Eligibility: not determined — verify at source.</span></footer>
   <script src="app.js"></script>
+  <script src="opportunities.js"></script>
 </body>
 </html>

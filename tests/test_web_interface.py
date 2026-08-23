@@ -1,20 +1,24 @@
 from pathlib import Path
+import json
 import re
 
 WEB = Path("web")
 INDEX = (WEB / "index.html").read_text(encoding="utf-8")
 APP = (WEB / "app.js").read_text(encoding="utf-8")
 CSS = (WEB / "styles.css").read_text(encoding="utf-8")
+OPPORTUNITIES_JS = (WEB / "opportunities.js").read_text(encoding="utf-8")
+OPPORTUNITIES_CSS = (WEB / "opportunities.css").read_text(encoding="utf-8")
 
 
 def test_public_web_assets_exist():
-    for name in ("index.html", "styles.css", "app.js"):
+    for name in ("index.html", "styles.css", "app.js", "opportunities.js", "opportunities.css", "data/opportunities.json"):
         assert (WEB / name).is_file()
 
 
 def test_interface_keeps_eligibility_verification_language():
     assert "Eligibility is never guessed" in INDEX
     assert "verify at source" in APP
+    assert "Not determined — verify at source" in OPPORTUNITIES_JS
 
 
 def test_interface_links_public_phirilab_ecosystem():
@@ -70,3 +74,29 @@ def test_about_and_grant_resource_sections_exist():
     assert 'id="resources"' in INDEX
     assert "Prof. Peter Phiri, PhD" in INDEX
     assert "What is covered — and how to use it" in INDEX
+
+
+def test_opportunity_surface_uses_versioned_feed_and_lifecycle_filters():
+    assert 'id="opportunities"' in INDEX
+    assert 'id="opportunityLifecycleFilter"' in INDEX
+    assert 'id="opportunityCards"' in INDEX
+    assert 'src="opportunities.js"' in INDEX
+    assert "fetch('data/opportunities.json'" in OPPORTUNITIES_JS
+    for lifecycle in ("closing_soon", "open", "rolling", "upcoming", "unknown", "closed"):
+        assert lifecycle in INDEX
+    assert ".lifecycle-badge.closing_soon" in OPPORTUNITIES_CSS
+
+
+def test_opportunity_feed_failure_cannot_break_funder_directory():
+    # Opportunity rendering is deliberately isolated in its own script. The
+    # existing directory app does not import or depend on the feed.
+    assert "opportunities.json" not in APP
+    assert "Live opportunity feed is temporarily unavailable" in OPPORTUNITIES_JS
+    assert "verified funder directory remains available" in OPPORTUNITIES_JS
+
+
+def test_placeholder_feed_is_schema_valid_and_contains_no_fabricated_calls():
+    payload = json.loads((WEB / "data" / "opportunities.json").read_text(encoding="utf-8"))
+    assert payload["schema_version"] == 1
+    assert payload["opportunity_count"] == 0
+    assert payload["opportunities"] == []
