@@ -95,6 +95,13 @@ def test_opportunity_feed_failure_cannot_break_funder_directory():
     assert "verified funder directory remains available" in OPPORTUNITIES_JS
 
 
+def test_opportunity_feed_visibly_discloses_staleness():
+    assert "OPPORTUNITY_STALE_HOURS=36" in OPPORTUNITIES_JS
+    assert "Feed is stale" in OPPORTUNITIES_JS
+    assert "verify current status at each primary call before acting" in OPPORTUNITIES_JS
+    assert "dataset.freshness" in OPPORTUNITIES_JS
+
+
 def test_placeholder_feed_is_schema_valid_and_contains_no_fabricated_calls():
     payload = json.loads((WEB / "data" / "opportunities.json").read_text(encoding="utf-8"))
     assert payload["schema_version"] == 1
