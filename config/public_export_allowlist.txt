@@ -30,6 +30,7 @@ src/observatory/sources/nihr_funding.py
 src/observatory/sources/wellcome_funding.py
 src/observatory/sources/eu_funding_tenders.py
 src/observatory/sources/global_health_funders.py
+src/observatory/sources/fogarty_funding.py
 tests/test_eu_public_feed.py
 tests/test_multi_source_public_feed.py
 tests/test_public_funding_export.py
@@ -43,6 +44,7 @@ tests/test_structured_eligibility.py
 tests/test_structured_eligibility_integration.py
 tests/test_ukri_pagination.py
 tests/test_nihr_funding.py
+tests/test_fogarty_funding.py
 tests/test_source_health.py
 tests/test_web_interface.py
 tests/fixtures/funding/idrc_stisa_2034.html
