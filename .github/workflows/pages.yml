@@ -47,3 +47,43 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify live Pages deployment
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import time
+          import urllib.request
+
+          base = os.environ['PAGE_URL'].rstrip('/') + '/'
+          headers = {'User-Agent': 'PhiriLab-GFI-deployment-smoke/1.0'}
+          last_error = None
+          for attempt in range(6):
+              try:
+                  with urllib.request.urlopen(urllib.request.Request(base, headers=headers), timeout=20) as response:
+                      html = response.read().decode('utf-8')
+                  required = ('Global Funding Intelligence', 'id="opportunities"', 'opportunities.js', 'id="discover"')
+                  missing = [marker for marker in required if marker not in html]
+                  if missing:
+                      raise RuntimeError(f'live HTML missing required markers: {missing}')
+                  with urllib.request.urlopen(urllib.request.Request(base + 'data/opportunities.json', headers=headers), timeout=20) as response:
+                      payload = json.loads(response.read().decode('utf-8'))
+                  if payload.get('schema_version') != 1:
+                      raise RuntimeError('live opportunity feed schema_version is not 1')
+                  opportunities = payload.get('opportunities')
+                  if not isinstance(opportunities, list) or not opportunities:
+                      raise RuntimeError('live opportunity feed has no structured records')
+                  if payload.get('opportunity_count') != len(opportunities):
+                      raise RuntimeError('live opportunity_count does not match opportunity list')
+                  print(f'Live Pages verification passed: {base} ({len(opportunities)} opportunities)')
+                  break
+              except Exception as exc:
+                  last_error = exc
+                  if attempt == 5:
+                      raise
+                  time.sleep(5)
+          else:
+              raise RuntimeError(f'live Pages verification failed: {last_error}')
+          PY
