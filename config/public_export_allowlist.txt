@@ -20,6 +20,7 @@ src/observatory/funding_models.py
 src/observatory/funding_sources.py
 src/observatory/public_funding_export.py
 src/observatory/public_opportunity_feed.py
+src/observatory/publish_public_opportunities.py
 src/observatory/untrusted.py
 src/observatory/sources/ukri_funding.py
 src/observatory/sources/nihr_funding.py
@@ -29,6 +30,7 @@ src/observatory/sources/global_health_funders.py
 tests/test_eu_public_feed.py
 tests/test_public_funding_export.py
 tests/test_public_opportunity_feed.py
+tests/test_publish_public_opportunities.py
 tests/test_priority_global_health_profiles.py
 tests/test_funding_adapter.py
 tests/test_funding_identity.py
