@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import json
 from pathlib import Path
 
-from .eu_public_feed import fetch_public_eu_feed_json
-from .public_opportunity_feed import PublicOpportunityFeed
+from .multi_source_public_feed import fetch_multi_source_public_feed
 
 
 async def generate_public_opportunity_file(
@@ -14,23 +12,24 @@ async def generate_public_opportunity_file(
     *,
     min_records: int = 1,
     page_size: int = 100,
+    html_source_limit: int = 20,
 ) -> int:
-    """Fetch, validate and atomically publish the current structured EU feed.
+    """Fetch, validate and atomically publish the current structured multi-source feed.
 
-    The destination is not touched until the upstream response has passed the
-    public schema and minimum-record checks. A failed refresh therefore leaves
-    the previously deployed Pages artifact intact.
+    EU remains the required baseline source. UKRI, NIHR and Wellcome are additive
+    collectors: an individual source can fail or yield no publishable detail pages
+    without erasing valid records from the other sources. The destination is not
+    touched until the combined feed passes the minimum-record check.
     """
     if min_records < 0:
         raise ValueError("min_records must be non-negative")
+    if html_source_limit < 0:
+        raise ValueError("html_source_limit must be non-negative")
 
-    raw = await fetch_public_eu_feed_json(page_size=page_size, indent=None)
-    try:
-        payload = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        raise ValueError("generated opportunity feed is not valid JSON") from exc
-
-    feed = PublicOpportunityFeed.model_validate(payload)
+    feed, source_results = await fetch_multi_source_public_feed(
+        eu_page_size=page_size,
+        html_source_limit=html_source_limit,
+    )
     if feed.opportunity_count != len(feed.opportunities):
         raise ValueError("opportunity_count does not match published records")
     if feed.opportunity_count < min_records:
@@ -47,6 +46,12 @@ async def generate_public_opportunity_file(
         encoding="utf-8",
     )
     temporary.replace(destination)
+
+    for result in source_results:
+        print(
+            f"{result.source_id}: discovered={result.discovered} "
+            f"accepted={result.accepted} errors={len(result.errors)}"
+        )
     return feed.opportunity_count
 
 
@@ -55,6 +60,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", default="web/data/opportunities.json")
     parser.add_argument("--min-records", type=int, default=1)
     parser.add_argument("--page-size", type=int, default=100)
+    parser.add_argument("--html-source-limit", type=int, default=20)
     return parser
 
 
@@ -65,6 +71,7 @@ def main() -> int:
             args.output,
             min_records=args.min_records,
             page_size=args.page_size,
+            html_source_limit=args.html_source_limit,
         )
     )
     print(f"Published {count} structured opportunities to {args.output}")
