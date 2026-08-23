@@ -29,6 +29,36 @@ sources:
     global_majority: mixed
     notes: Horizon Europe and related opportunity metadata are normalized from the European Commission public REST API. EDCTP3 is treated as a deterministic programme subset of this canonical EU feed. Eligibility and consortium-country rules remain unverified until explicit structured rules are available.
 
+  ukri_funding_finder:
+    name: UK Research and Innovation Funding Finder
+    region: UK
+    primary_url: https://www.ukri.org/opportunity/
+    ingestion: structured_html_detail
+    automation: structured_beta
+    priority: critical
+    global_majority: mixed
+    notes: Funding Finder detail pages expose stable status, funder, funding type, award and deadline fields. Eligibility remains authoritative at the individual opportunity page.
+
+  nihr_funding:
+    name: NIHR Research Funding
+    region: UK
+    primary_url: https://www.nihr.ac.uk/research-funding
+    ingestion: structured_html_detail
+    automation: structured_beta
+    priority: critical
+    global_majority: mixed
+    notes: NIHR programme and call pages are normalized only when deterministic call fields are present. Fragmented or generic programme pages are skipped rather than inferred.
+
+  wellcome_funding:
+    name: Wellcome Research Funding
+    region: global
+    primary_url: https://wellcome.org/research-funding/schemes
+    ingestion: structured_html_detail
+    automation: structured_beta
+    priority: critical
+    global_majority: direct
+    notes: Scheme detail pages are normalized only when accessible and sufficiently structured. Access failures or generic scheme pages are skipped for that refresh; final eligibility remains on the primary source.
+
   tdr_who:
     name: WHO/TDR
     region: global_majority
