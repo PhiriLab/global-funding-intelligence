@@ -76,6 +76,14 @@ def test_about_and_grant_resource_sections_exist():
     assert "What is covered — and how to use it" in INDEX
 
 
+def test_partnership_and_sponsorship_route_is_visible_and_independent():
+    assert 'id="partnerships"' in INDEX
+    assert "Partner / Sponsor" in INDEX
+    assert "partnership-sponsorship.yml" in INDEX
+    assert "does not confer influence over opportunity verification, eligibility assessment, source-state decisions or ranking" in INDEX
+    assert "Sponsored relationships should be disclosed transparently" in INDEX
+
+
 def test_opportunity_surface_uses_versioned_feed_and_lifecycle_filters():
     assert 'id="opportunities"' in INDEX
     assert 'id="opportunityLifecycleFilter"' in INDEX
