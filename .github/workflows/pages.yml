@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'web/**'
+      - 'src/observatory/**'
+      - 'config/funder_ingestion.yaml'
+      - 'requirements.txt'
       - '.github/workflows/pages.yml'
   schedule:
     - cron: '17 6,18 * * *'
@@ -34,11 +37,8 @@ jobs:
       - name: Install funding-engine dependencies
         run: pip install -r requirements.txt
       - name: Build current verified opportunity feed
-        run: PYTHONPATH=src python -m observatory.publish_public_opportunities --output web/data/opportunities.json --min-records 1 --page-size 100
+        run: PYTHONPATH=src python -m observatory.publish_public_opportunities --output web/data/opportunities.json --min-records 1 --page-size 100 --html-source-limit 20
       - uses: actions/configure-pages@v5
-        # enablement lets the workflow turn Pages on via the API. Without it every
-        # deploy fails with "Get Pages site failed ... Not Found" until Pages is
-        # enabled by hand in Settings → Pages.
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
