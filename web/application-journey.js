@@ -34,11 +34,16 @@ function loadJourneys() {
 }
 
 function saveJourneys() {
-  localStorage.setItem(GFI_JOURNEY_STORAGE_KEY, JSON.stringify(journeys));
+  try {
+    localStorage.setItem(GFI_JOURNEY_STORAGE_KEY, JSON.stringify(journeys));
+    return true;
+  } catch (_error) {
+    return false;
+  }
 }
 
 function newJourneyId() {
-  if (crypto?.randomUUID) return crypto.randomUUID();
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
     const r = Math.random() * 16 | 0;
     return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
@@ -91,10 +96,17 @@ function addSaveButtons() {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'journey-save-button';
-    const existing = journeyForOpportunity(item);
-    button.textContent = existing ? 'Tracking application ✓' : 'Save / track application';
+    button.textContent = journeyForOpportunity(item) ? 'Tracking application ✓' : 'Save / track application';
     button.addEventListener('click', () => saveOpportunityJourney(item, button));
     bottom.appendChild(button);
+  });
+}
+
+function refreshSaveButtonLabels() {
+  document.querySelectorAll('.opportunity-card').forEach(card => {
+    const item = findOpportunityForCard(card);
+    const button = card.querySelector('.journey-save-button');
+    if (item && button) button.textContent = journeyForOpportunity(item) ? 'Tracking application ✓' : 'Save / track application';
   });
 }
 
@@ -112,7 +124,7 @@ function saveOpportunityJourney(item, button) {
       stage: 'saved',
       role: 'unknown',
       outcome: null,
-      gfi_helped_discover: true,
+      gfi_helped_discover: false,
       gfi_helped_assess: false,
       award_value_band: null,
       share_evaluation: false,
@@ -120,7 +132,11 @@ function saveOpportunityJourney(item, button) {
       updated_at: new Date().toISOString()
     };
     journeys.push(journey);
-    saveJourneys();
+    if (!saveJourneys()) {
+      journeys = journeys.filter(saved => saved.journey_id !== journey.journey_id);
+      button.textContent = 'Browser storage unavailable';
+      return;
+    }
   }
   button.textContent = 'Tracking application ✓';
   renderJourneyPanel();
@@ -180,8 +196,11 @@ async function updateJourney(card) {
   journey.gfi_helped_assess = get('gfi_helped_assess').checked;
   journey.share_evaluation = get('share_evaluation').checked;
   journey.updated_at = new Date().toISOString();
-  saveJourneys();
   const status = card.querySelector('.journey-status');
+  if (!saveJourneys()) {
+    status.textContent = 'Browser storage unavailable; update was not persisted.';
+    return;
+  }
   if (!journey.share_evaluation) {
     status.textContent = 'Saved locally only.';
     return;
@@ -195,7 +214,7 @@ function removeJourney(journeyId) {
   journeys = journeys.filter(item => item.journey_id !== journeyId);
   saveJourneys();
   renderJourneyPanel();
-  addSaveButtons();
+  refreshSaveButtonLabels();
 }
 
 async function sendJourneyEvent(journey) {
