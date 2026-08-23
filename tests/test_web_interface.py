@@ -126,6 +126,34 @@ def test_organisation_options_are_derived_from_structured_feed_values():
     assert "Not verified" in OPPORTUNITIES_JS
 
 
+def test_applicant_matcher_is_gate_first_and_transparent():
+    for marker in ("MATCH MY PROFILE", "Rank for this profile", "profileDecision", "countryRoute", "decision='verify'", "decision='skip'", "decision='partner'", "decision='apply'"):
+        assert marker in OPPORTUNITIES_JS
+    assert "Unknown evidence stays <strong>verify</strong>" in OPPORTUNITIES_JS
+    assert "Ranking is eligibility- and feasibility-led" in OPPORTUNITIES_JS
+    assert ".match-decision.apply" in OPPORTUNITIES_CSS
+    assert ".match-decision.verify" in OPPORTUNITIES_CSS
+
+
+def test_usage_telemetry_is_aggregate_and_privacy_bounded():
+    assert "GFI_ALLOWED_EVENTS" in OPPORTUNITIES_JS
+    for event in ("page_ready", "feed_ready", "filter_change", "search_used", "profile_ranked", "primary_source_open"):
+        assert event in OPPORTUNITIES_JS
+    assert "navigator.doNotTrack==='1'" in OPPORTUNITIES_JS
+    assert "gfi-aggregate-analytics" in OPPORTUNITIES_JS
+    assert "GFI_ANALYTICS_ENDPOINT" in OPPORTUNITIES_JS
+    assert "query_length_bucket" in OPPORTUNITIES_JS
+    assert "no session recording, persistent visitor ID or inferred sensitive demographics" in OPPORTUNITIES_JS
+    forbidden = ("sessionStorage", "localStorage.setItem('gfi-visitor", "fingerprint", "ip_address", "ethnicity", "race", "religion", "disability")
+    assert all(token not in OPPORTUNITIES_JS for token in forbidden)
+
+
+def test_source_health_labels_cover_new_live_sources_and_lkg():
+    for label in ("Science for Africa", "IDRC", "Fogarty", "Grand Challenges Canada", "EDCTP3"):
+        assert label in OPPORTUNITIES_JS
+    assert "using_last_known_good" in OPPORTUNITIES_JS
+
+
 def test_placeholder_feed_is_schema_valid_and_contains_no_fabricated_calls():
     payload = json.loads((WEB / "data" / "opportunities.json").read_text(encoding="utf-8"))
     assert payload["schema_version"] == 1
