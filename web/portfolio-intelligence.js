@@ -148,5 +148,14 @@ function installPortfolioObservers() {
   renderPortfolio();
 }
 
+function loadSavedOpportunityWatch() {
+  if (document.querySelector('script[data-gfi-source-watch]')) return;
+  const script = document.createElement('script');
+  script.src = 'saved-opportunity-watch.js';
+  script.dataset.gfiSourceWatch = 'true';
+  document.body.appendChild(script);
+}
+
 installPortfolioPanel();
 installPortfolioObservers();
+loadSavedOpportunityWatch();
