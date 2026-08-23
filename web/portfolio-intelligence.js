@@ -9,6 +9,8 @@ let portfolioBody = null;
 function portfolioPriority(journey) {
   const readiness = computeReadiness(journey);
   let score = 0;
+  const watchChanges = typeof unacknowledgedWatchChanges === 'function' ? unacknowledgedWatchChanges(journey) : [];
+  if (watchChanges.length) score += 650;
   if (readiness.state === 'blocked') score += 500;
   else if (readiness.state === 'verify') score += 420;
   else if (readiness.state === 'action_needed') score += 340;
@@ -24,10 +26,12 @@ function portfolioPriority(journey) {
   }
   const stageIndex = GFI_STAGE_ORDER.indexOf(journey.stage);
   if (stageIndex >= 0 && stageIndex < GFI_STAGE_ORDER.indexOf('submitted')) score += Math.max(0, 70 - stageIndex * 6);
-  return {score, readiness};
+  return {score, readiness, watchChanges};
 }
 
 function recommendedNextAction(journey, result) {
+  const watchChanges = typeof unacknowledgedWatchChanges === 'function' ? unacknowledgedWatchChanges(journey) : [];
+  if (watchChanges.length) return 'Review and acknowledge the detected primary-source change before relying on the previous application plan.';
   if (result.blockers.length) return result.blockers[0];
   if (result.unknowns.length) return result.unknowns[0];
   if (result.incomplete.length) {
@@ -92,12 +96,13 @@ function downloadDeadlineReminder(journey) {
 }
 
 function portfolioRow(journey) {
-  const {readiness} = portfolioPriority(journey);
+  const {readiness, watchChanges} = portfolioPriority(journey);
   const reminder = deadlineForReminder(journey);
+  const watchBadge = watchChanges.length ? `<span class="portfolio-stage">${watchChanges.length} source change${watchChanges.length === 1 ? '' : 's'} to review</span>` : '';
   return `<article class="portfolio-row" data-portfolio-journey="${opportunityEscape(journey.journey_id)}">
     <div class="portfolio-main">
       <div class="portfolio-title"><strong>${opportunityEscape(journey.title)}</strong><span>${opportunityEscape(journey.funder)}</span></div>
-      <div class="portfolio-badges"><span class="readiness-state ${opportunityEscape(readiness.state)}">${opportunityEscape(readiness.label)}</span><span class="deadline-chip ${opportunityEscape(readiness.deadline.state)}">${opportunityEscape(readiness.deadline.label)}</span><span class="portfolio-stage">${opportunityEscape((GFI_JOURNEY_STAGES.find(([value]) => value === journey.stage)?.[1]) || journey.stage)}</span></div>
+      <div class="portfolio-badges"><span class="readiness-state ${opportunityEscape(readiness.state)}">${opportunityEscape(readiness.label)}</span><span class="deadline-chip ${opportunityEscape(readiness.deadline.state)}">${opportunityEscape(readiness.deadline.label)}</span><span class="portfolio-stage">${opportunityEscape((GFI_JOURNEY_STAGES.find(([value]) => value === journey.stage)?.[1]) || journey.stage)}</span>${watchBadge}</div>
       <p class="portfolio-action"><strong>Next action:</strong> ${opportunityEscape(recommendedNextAction(journey, readiness))}</p>
     </div>
     <div class="portfolio-actions"><button type="button" class="button portfolio-open">Open tracker</button>${reminder ? '<button type="button" class="button portfolio-reminder">Add deadline reminder</button>' : '<span class="portfolio-no-reminder">Verify a deadline to enable reminder</span>'}</div>
@@ -109,7 +114,7 @@ function installPortfolioPanel() {
   portfolioPanel = document.createElement('section');
   portfolioPanel.id = 'applicationPortfolio';
   portfolioPanel.className = 'application-portfolio';
-  portfolioPanel.innerHTML = `<div class="portfolio-head"><div><p class="eyebrow">ACTIVE APPLICATION PORTFOLIO</p><h3>What needs attention next?</h3></div><p>Prioritised from locally saved applications using verified deadline proximity, readiness, blockers and current journey stage. No application content is uploaded.</p></div><div id="portfolioBody" class="portfolio-body" aria-live="polite"></div>`;
+  portfolioPanel.innerHTML = `<div class="portfolio-head"><div><p class="eyebrow">ACTIVE APPLICATION PORTFOLIO</p><h3>What needs attention next?</h3></div><p>Prioritised from locally saved applications using source changes, verified deadline proximity, readiness, blockers and current journey stage. No application content is uploaded.</p></div><div id="portfolioBody" class="portfolio-body" aria-live="polite"></div>`;
   const journey = document.getElementById('applicationJourney');
   if (journey) journey.insertAdjacentElement('beforebegin', portfolioPanel);
   else opportunityEls.sourceHealth?.insertAdjacentElement('afterend', portfolioPanel);
@@ -143,5 +148,14 @@ function installPortfolioObservers() {
   renderPortfolio();
 }
 
+function loadSavedOpportunityWatch() {
+  if (document.querySelector('script[data-gfi-source-watch]')) return;
+  const script = document.createElement('script');
+  script.src = 'saved-opportunity-watch.js';
+  script.dataset.gfiSourceWatch = 'true';
+  document.body.appendChild(script);
+}
+
 installPortfolioPanel();
 installPortfolioObservers();
+loadSavedOpportunityWatch();
