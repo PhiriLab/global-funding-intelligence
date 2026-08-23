@@ -148,7 +148,8 @@ class FundingScore(BaseModel):
     decision: Literal["apply", "partner", "watch", "verify", "skip"]
     eligibility_gate: Literal["pass", "fail", "uncertain"] = "uncertain"
     participation_route: Literal["lead", "partner", "unknown", "ineligible"] = "unknown"
-    unknowns: list[str] = Field(default_factory=list)
+    unknowns: list[str] = Field(default_factory=list, description="Eligibility-critical facts not deterministically verified")
+    fit_unknowns: list[str] = Field(default_factory=list, description="Non-gating fit facts absent from structured source data")
     reasons: list[str] = Field(default_factory=list)
     blockers: list[str] = Field(default_factory=list)
 
@@ -183,7 +184,8 @@ def _country_state(opportunity: Opportunity, applicant: ApplicantProfile) -> str
 def _membership_state(allowed: list[str], value: str) -> str:
     if not allowed:
         return _UNKNOWN
-    return _SATISFIED if value in allowed else _VIOLATED
+    normalised = value.strip().casefold()
+    return _SATISFIED if normalised in {item.strip().casefold() for item in allowed} else _VIOLATED
 
 
 def _flag_state(required: bool | None, applicant_has: bool) -> str:
@@ -230,68 +232,202 @@ def _career_state(opportunity: Opportunity, applicant: ApplicantProfile) -> str:
     return _SATISFIED
 
 
+def _trl_state(opportunity: Opportunity, applicant: ApplicantProfile) -> str:
+    if opportunity.trl_min is None and opportunity.trl_max is None:
+        return _UNKNOWN
+    if applicant.trl is None:
+        return _UNKNOWN
+    if opportunity.trl_min is not None and applicant.trl < opportunity.trl_min:
+        return _VIOLATED
+    if opportunity.trl_max is not None and applicant.trl > opportunity.trl_max:
+        return _VIOLATED
+    return _SATISFIED
+
+
+def _strategic_fit(opportunity: Opportunity, applicant: ApplicantProfile) -> tuple[float, list[str], list[str]]:
+    reasons: list[str] = []
+    unknowns: list[str] = []
+    components: list[float] = []
+    applicant_sectors = {item.strip().casefold() for item in applicant.sectors if item.strip()}
+    applicant_stages = {item.strip().casefold() for item in applicant.stages if item.strip()}
+    opportunity_sectors = {item.strip().casefold() for item in opportunity.sectors if item.strip()}
+    opportunity_stages = {item.strip().casefold() for item in opportunity.stages if item.strip()}
+
+    if opportunity_sectors:
+        if applicant_sectors:
+            overlap = applicant_sectors & opportunity_sectors
+            components.append(100.0 if overlap else 0.0)
+            if overlap:
+                reasons.append("sector match")
+        else:
+            components.append(50.0)
+            unknowns.append("applicant sectors not supplied")
+    else:
+        unknowns.append("opportunity sectors not structured")
+
+    if opportunity_stages:
+        if applicant_stages:
+            overlap = applicant_stages & opportunity_stages
+            components.append(100.0 if overlap else 0.0)
+            if overlap:
+                reasons.append("research or innovation stage match")
+        else:
+            components.append(50.0)
+            unknowns.append("applicant stages not supplied")
+    else:
+        unknowns.append("opportunity stages not structured")
+
+    if opportunity.trl_min is not None or opportunity.trl_max is not None:
+        trl_state = _trl_state(opportunity, applicant)
+        if trl_state == _SATISFIED:
+            components.append(100.0); reasons.append("TRL match")
+        elif trl_state == _VIOLATED:
+            components.append(0.0)
+        else:
+            components.append(50.0); unknowns.append("applicant TRL not supplied")
+
+    if not components:
+        return 50.0, reasons, unknowns
+    return sum(components) / len(components), reasons, unknowns
+
+
+def _deadline_feasibility(opportunity: Opportunity, now: datetime) -> tuple[float, bool]:
+    actionable_deadline = opportunity.next_actionable_deadline(now)
+    if actionable_deadline:
+        days = (actionable_deadline - now).total_seconds() / 86400
+        return min(100.0, max(10.0, days * 2.5)), True
+    if opportunity.closing_at and opportunity.closing_at < now:
+        return 0.0, True
+    if opportunity.rolling or opportunity.status == OpportunityStatus.rolling:
+        return 85.0, True
+    return 50.0, False
+
+
 def score_opportunity(opportunity: Opportunity, applicant: ApplicantProfile, now: datetime | None = None) -> FundingScore:
     now = now or datetime.now(timezone.utc)
     reasons: list[str] = []
     blockers: list[str] = []
     unknowns: list[str] = []
+    fit_unknowns: list[str] = []
     participation_route = _participation_route(opportunity, applicant)
+
+    # Country and organisation are always eligibility-critical. Optional rules are
+    # evaluated only when the source explicitly states them; absence is not failure.
     criteria = [
         ("country eligibility", _country_state(opportunity, applicant)),
         ("organisation type", _membership_state(opportunity.applicant_types, applicant.organisation_type)),
-        ("consortium requirement", _flag_state(opportunity.consortium_required, applicant.can_form_consortium)),
-        ("local partner requirement", _flag_state(opportunity.local_partner_required, applicant.has_required_local_partner)),
     ]
+    if opportunity.consortium_required is not None:
+        criteria.append(("consortium requirement", _flag_state(opportunity.consortium_required, applicant.can_form_consortium)))
+    if opportunity.local_partner_required is not None:
+        criteria.append(("local partner requirement", _flag_state(opportunity.local_partner_required, applicant.has_required_local_partner)))
     if opportunity.oda_only is not None:
         criteria.append(("ODA eligibility", _oda_state(opportunity, applicant)))
     if opportunity.eligible_income_groups:
         criteria.append(("income-group eligibility", _income_state(opportunity, applicant)))
     if opportunity.career_stages or opportunity.years_since_phd_min is not None or opportunity.years_since_phd_max is not None:
         criteria.append(("career-stage eligibility", _career_state(opportunity, applicant)))
+
     eligibility = 100.0
     for label, state in criteria:
         if state == _VIOLATED:
-            eligibility -= 25; blockers.append(label)
+            eligibility -= 35; blockers.append(label)
         elif state == _UNKNOWN:
-            eligibility -= 12; unknowns.append(label)
-    sector_overlap = len(set(map(str.lower, applicant.sectors)) & set(map(str.lower, opportunity.sectors)))
-    stage_overlap = len(set(map(str.lower, applicant.stages)) & set(map(str.lower, opportunity.stages)))
-    strategic_fit = min(100.0, 40 + sector_overlap * 30 + stage_overlap * 20)
+            eligibility -= 15; unknowns.append(label)
+
+    strategic_fit, fit_reasons, fit_unknowns = _strategic_fit(opportunity, applicant)
+    reasons.extend(fit_reasons)
+
     accessibility_map = {"direct": 100.0, "partner_only": 65.0, "restricted": 20.0, "unclear": 45.0, "not_applicable": 70.0}
     accessibility = accessibility_map[opportunity.global_majority_access]
-    actionable_deadline = opportunity.next_actionable_deadline(now)
-    if actionable_deadline:
-        days = (actionable_deadline - now).total_seconds() / 86400
-        deadline_feasibility = min(100.0, max(20.0, days * 2.5))
-    elif opportunity.closing_at and opportunity.closing_at < now:
-        deadline_feasibility = 10.0
+    deadline_feasibility, deadline_known = _deadline_feasibility(opportunity, now)
+    if not deadline_known:
+        fit_unknowns.append("actionable deadline not verified")
+
+    if opportunity.max_award is None:
+        award_value = 50.0
+        fit_unknowns.append("maximum award not verified")
+    elif opportunity.max_award >= 1_000_000:
+        award_value = 100.0
+    elif opportunity.max_award >= 250_000:
+        award_value = 85.0
+    elif opportunity.max_award >= 50_000:
+        award_value = 70.0
     else:
-        deadline_feasibility = 85.0 if opportunity.rolling else 60.0
-    if opportunity.max_award is None: award_value = 55.0
-    elif opportunity.max_award >= 1_000_000: award_value = 100.0
-    elif opportunity.max_award >= 250_000: award_value = 85.0
-    elif opportunity.max_award >= 50_000: award_value = 70.0
-    else: award_value = 55.0
+        award_value = 55.0
+
     burden = 55.0
-    if opportunity.consortium_required: burden -= 15
-    if opportunity.local_partner_required: burden -= 10
-    if opportunity.status in {OpportunityStatus.forecast, OpportunityStatus.upcoming, OpportunityStatus.rolling}: burden += 10
+    if opportunity.consortium_required is True:
+        burden -= 15
+    if opportunity.local_partner_required is True:
+        burden -= 10
+    if opportunity.status in {OpportunityStatus.forecast, OpportunityStatus.upcoming, OpportunityStatus.rolling}:
+        burden += 10
     burden = min(100.0, max(0.0, burden))
+
     age_hours = max(0.0, (now - opportunity.source_checked_at).total_seconds() / 3600)
     source_confidence = max(40.0, 100.0 - min(age_hours, 168) * 0.35)
-    overall = round(eligibility * 0.28 + strategic_fit * 0.22 + accessibility * 0.14 + deadline_feasibility * 0.12 + award_value * 0.08 + burden * 0.06 + source_confidence * 0.10, 1)
-    if blockers: eligibility_gate = "fail"
-    elif unknowns or opportunity.global_majority_access == "unclear" or participation_route == "unknown": eligibility_gate = "uncertain"
-    else: eligibility_gate = "pass"
-    if eligibility_gate == "fail": decision = "skip"
-    elif eligibility_gate == "uncertain" or source_confidence < 60: decision = "verify"
-    elif participation_route == "partner": decision = "partner"
-    elif overall >= 78: decision = "apply"
-    elif overall >= 62: decision = "watch"
-    else: decision = "skip"
-    if participation_route == "lead": reasons.append("country confirmed eligible to lead")
-    elif participation_route == "partner": reasons.append("country confirmed eligible as partner, not lead")
-    if sector_overlap: reasons.append("sector match")
-    if opportunity.global_majority_access == "direct": reasons.append("direct Global Majority access")
-    if unknowns: reasons.append("verify before applying: " + ", ".join(unknowns) + " not stated by source")
-    return FundingScore(eligibility=max(0.0, eligibility), strategic_fit=strategic_fit, accessibility=accessibility, deadline_feasibility=deadline_feasibility, award_value=award_value, burden=burden, source_confidence=source_confidence, overall=overall, decision=decision, eligibility_gate=eligibility_gate, participation_route=participation_route, unknowns=unknowns, reasons=reasons, blockers=blockers)
+    overall = round(
+        max(0.0, eligibility) * 0.32
+        + strategic_fit * 0.22
+        + accessibility * 0.12
+        + deadline_feasibility * 0.12
+        + award_value * 0.07
+        + burden * 0.05
+        + source_confidence * 0.10,
+        1,
+    )
+
+    if blockers:
+        eligibility_gate = "fail"
+    elif unknowns or participation_route == "unknown":
+        eligibility_gate = "uncertain"
+    else:
+        eligibility_gate = "pass"
+
+    expired = bool(opportunity.closing_at and opportunity.closing_at < now) or opportunity.status == OpportunityStatus.closed
+    if expired:
+        decision = "skip"; blockers.append("opportunity closed or deadline passed")
+    elif eligibility_gate == "fail":
+        decision = "skip"
+    elif eligibility_gate == "uncertain" or source_confidence < 60 or not deadline_known:
+        decision = "verify"
+    elif participation_route == "partner":
+        decision = "partner"
+    elif opportunity.status in {OpportunityStatus.forecast, OpportunityStatus.upcoming}:
+        decision = "watch"
+    elif overall >= 75:
+        decision = "apply"
+    elif overall >= 60:
+        decision = "watch"
+    else:
+        decision = "skip"
+
+    if participation_route == "lead":
+        reasons.append("country confirmed eligible to lead")
+    elif participation_route == "partner":
+        reasons.append("country confirmed eligible as partner, not lead")
+    if opportunity.global_majority_access == "direct":
+        reasons.append("direct Global Majority access")
+    elif opportunity.global_majority_access == "partner_only":
+        reasons.append("Global Majority access is partner-only")
+    if unknowns:
+        reasons.append("verify before applying: " + ", ".join(unknowns) + " not stated by source")
+
+    return FundingScore(
+        eligibility=max(0.0, eligibility),
+        strategic_fit=strategic_fit,
+        accessibility=accessibility,
+        deadline_feasibility=deadline_feasibility,
+        award_value=award_value,
+        burden=burden,
+        source_confidence=source_confidence,
+        overall=overall,
+        decision=decision,
+        eligibility_gate=eligibility_gate,
+        participation_route=participation_route,
+        unknowns=unknowns,
+        fit_unknowns=list(dict.fromkeys(fit_unknowns)),
+        reasons=reasons,
+        blockers=list(dict.fromkeys(blockers)),
+    )
