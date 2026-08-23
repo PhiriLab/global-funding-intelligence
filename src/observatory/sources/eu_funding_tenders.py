@@ -14,6 +14,7 @@ from observatory.funding_models import Opportunity, OpportunityStatus
 EU_SEARCH_API = "https://api.tech.ec.europa.eu/search-api/prod/rest/search?apiKey=SEDIA&text=***"
 EU_PORTAL_BASE = "https://ec.europa.eu/info/funding-tenders/opportunities/portal/screen"
 _EU_IDENTIFIER = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
+_EDCTP3_MARKERS = ("edctp3", "edctp 3", "global health edctp")
 MAX_JSON_BYTES = 2_000_000
 
 
@@ -60,6 +61,18 @@ def _parse_api_date(value: Any) -> datetime | None:
         return None
 
 
+def is_edctp3_record(record: dict[str, Any]) -> bool:
+    """Identify EDCTP3 topics from authoritative EU record metadata only."""
+    values = (
+        _first(record, "identifier", "topicIdentifier", "callIdentifier", "id"),
+        _first(record, "title", "topicTitle", "name"),
+        _first(record, "programme", "programmePeriod", "frameworkProgrammeDescription", "frameworkProgramme"),
+        _first(record, "callTitle", "callIdentifier"),
+    )
+    haystack = " ".join(str(value) for value in values if value not in (None, "", [], {})).lower()
+    return any(marker in haystack for marker in _EDCTP3_MARKERS)
+
+
 def normalise_eu_record(record: dict[str, Any]) -> Opportunity:
     identifier = str(_first(record, "identifier", "topicIdentifier", "callIdentifier", "id") or "eu-topic")
     title = str(_first(record, "title", "topicTitle", "name") or identifier)
@@ -85,6 +98,14 @@ def normalise_eu_record(record: dict[str, Any]) -> Opportunity:
     if ccm2_id:
         provenance += f" ccm2Id={ccm2_id}."
     return Opportunity(source_id="eu_funding_tenders", external_id=identifier, title=title, funder="European Commission", programme=str(programme) if programme is not None else None, primary_url=primary_url, status=status, opening_at=opening_at, closing_at=closing_at, global_majority_access="unclear", source_checked_at=datetime.now(timezone.utc), provenance_note=provenance)
+
+
+def normalise_eu_records(records: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> tuple[Opportunity, ...]:
+    return tuple(normalise_eu_record(record) for record in records)
+
+
+def normalise_edctp3_records(records: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> tuple[Opportunity, ...]:
+    return tuple(normalise_eu_record(record) for record in records if is_edctp3_record(record))
 
 
 async def fetch_eu_open_calls(*, timeout: float = 30.0, page_size: int = 100) -> EUFundingResult:
