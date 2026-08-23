@@ -62,7 +62,6 @@ def _parse_api_date(value: Any) -> datetime | None:
 
 
 def is_edctp3_record(record: dict[str, Any]) -> bool:
-    """Identify EDCTP3 topics from authoritative EU record metadata only."""
     values = (
         _first(record, "identifier", "topicIdentifier", "callIdentifier", "id"),
         _first(record, "title", "topicTitle", "name"),
@@ -102,8 +101,7 @@ def normalise_eu_record(record: dict[str, Any]) -> Opportunity:
 
 def normalise_edctp3_record(record: dict[str, Any]) -> Opportunity:
     opportunity = normalise_eu_record(record)
-    note = opportunity.provenance_note or ""
-    note += " Identified as Global Health EDCTP3 from authoritative EU programme metadata; call-specific applicant route remains unverified."
+    note = (opportunity.provenance_note or "") + " Identified as Global Health EDCTP3 from authoritative EU programme metadata; call-specific applicant route remains unverified."
     return opportunity.model_copy(update={
         "source_id": "edctp3",
         "funder": "Global Health EDCTP3 Joint Undertaking",
@@ -113,7 +111,7 @@ def normalise_edctp3_record(record: dict[str, Any]) -> Opportunity:
 
 
 def normalise_eu_records(records: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> tuple[Opportunity, ...]:
-    return tuple(normalise_eu_record(record) for record in records)
+    return tuple(normalise_edctp3_record(record) if is_edctp3_record(record) else normalise_eu_record(record) for record in records)
 
 
 def normalise_edctp3_records(records: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> tuple[Opportunity, ...]:
