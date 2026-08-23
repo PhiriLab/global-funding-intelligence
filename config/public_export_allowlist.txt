@@ -13,6 +13,8 @@ config/public_export_allowlist.txt
 src/observatory/country_data.py
 src/observatory/eu_public_feed.py
 src/observatory/multi_source_public_feed.py
+src/observatory/resilient_multi_source.py
+src/observatory/source_resilience.py
 src/observatory/funding_adapter.py
 src/observatory/funding_decision.py
 src/observatory/funding_extract.py
@@ -33,6 +35,8 @@ src/observatory/sources/global_health_funders.py
 src/observatory/sources/fogarty_funding.py
 tests/test_eu_public_feed.py
 tests/test_multi_source_public_feed.py
+tests/test_resilient_multi_source.py
+tests/test_source_lkg_resilience.py
 tests/test_public_funding_export.py
 tests/test_public_opportunity_feed.py
 tests/test_publish_public_opportunities.py

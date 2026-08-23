@@ -34,6 +34,8 @@ class PublicSourceHealth(BaseModel):
     accepted: int = 0
     error_count: int = 0
     last_error: str | None = None
+    using_last_known_good: bool = False
+    last_good_at: datetime | None = None
 
 
 class PublicOpportunityRecord(BaseModel):
@@ -53,9 +55,6 @@ class PublicOpportunityRecord(BaseModel):
     min_award: float | None = None
     max_award: float | None = None
     total_fund: float | None = None
-
-    # Applicant-route fields are copied only from trusted structured Opportunity
-    # fields. Empty collections / null values mean "not deterministically verified".
     applicant_types: list[str] = Field(default_factory=list)
     eligible_countries: list[str] = Field(default_factory=list)
     excluded_countries: list[str] = Field(default_factory=list)
@@ -68,7 +67,6 @@ class PublicOpportunityRecord(BaseModel):
     lead_location_rule: str | None = None
     equity_or_lmic_requirement: str | None = None
     global_majority_access: str = "unclear"
-
     eligibility: str = "Not determined — verify at source"
     provenance_note: str | None = None
     warnings: list[str] = Field(default_factory=list)
