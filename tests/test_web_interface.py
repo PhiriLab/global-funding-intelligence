@@ -88,8 +88,6 @@ def test_opportunity_surface_uses_versioned_feed_and_lifecycle_filters():
 
 
 def test_opportunity_feed_failure_cannot_break_funder_directory():
-    # Opportunity rendering is deliberately isolated in its own script. The
-    # existing directory app does not import or depend on the feed.
     assert "opportunities.json" not in APP
     assert "Live opportunity feed is temporarily unavailable" in OPPORTUNITIES_JS
     assert "verified funder directory remains available" in OPPORTUNITIES_JS
@@ -100,6 +98,24 @@ def test_opportunity_feed_visibly_discloses_staleness():
     assert "Feed is stale" in OPPORTUNITIES_JS
     assert "verify current status at each primary call before acting" in OPPORTUNITIES_JS
     assert "dataset.freshness" in OPPORTUNITIES_JS
+
+
+def test_opportunity_filters_preserve_unknown_by_default_and_support_verified_only():
+    for control in ("opportunityCountry", "opportunityOrganisation", "opportunityGMRoute", "opportunityEvidence"):
+        assert control in OPPORTUNITIES_JS
+    assert 'value="include_unknown"' in OPPORTUNITIES_JS
+    assert 'value="verified_only"' in OPPORTUNITIES_JS
+    assert "hasRouteEvidence" in OPPORTUNITIES_JS
+    assert "countryRoute" in OPPORTUNITIES_JS
+    assert "Unknown is not treated as ineligible" in OPPORTUNITIES_JS
+    assert "route==='unknown'" in OPPORTUNITIES_JS
+    assert "route==='excluded'||route==='not_listed'" in OPPORTUNITIES_JS
+
+
+def test_organisation_options_are_derived_from_structured_feed_values():
+    assert "item.applicant_types||[]" in OPPORTUNITIES_JS
+    assert "populateOrganisationOptions" in OPPORTUNITIES_JS
+    assert "Not verified" in OPPORTUNITIES_JS
 
 
 def test_placeholder_feed_is_schema_valid_and_contains_no_fabricated_calls():
