@@ -35,7 +35,22 @@ class PublicOpportunityRecord(BaseModel):
     min_award: float | None = None
     max_award: float | None = None
     total_fund: float | None = None
+
+    # Applicant-route fields are copied only from trusted structured Opportunity
+    # fields. Empty collections / null values mean "not deterministically verified".
+    applicant_types: list[str] = Field(default_factory=list)
+    eligible_countries: list[str] = Field(default_factory=list)
+    excluded_countries: list[str] = Field(default_factory=list)
+    lead_countries: list[str] = Field(default_factory=list)
+    partner_countries: list[str] = Field(default_factory=list)
+    eligible_income_groups: list[str] = Field(default_factory=list)
+    oda_only: bool | None = None
+    consortium_required: bool | None = None
+    local_partner_required: bool | None = None
+    lead_location_rule: str | None = None
+    equity_or_lmic_requirement: str | None = None
     global_majority_access: str = "unclear"
+
     eligibility: str = "Not determined — verify at source"
     provenance_note: str | None = None
     warnings: list[str] = Field(default_factory=list)
@@ -71,6 +86,23 @@ def classify_lifecycle(opportunity: Opportunity, *, now: datetime | None = None,
     return OpportunityLifecycle.unknown
 
 
+def _has_applicant_route_evidence(opportunity: Opportunity) -> bool:
+    return bool(
+        opportunity.applicant_types
+        or opportunity.eligible_countries
+        or opportunity.excluded_countries
+        or opportunity.lead_countries
+        or opportunity.partner_countries
+        or opportunity.eligible_income_groups
+        or opportunity.oda_only is not None
+        or opportunity.consortium_required is not None
+        or opportunity.local_partner_required is not None
+        or opportunity.lead_location_rule
+        or opportunity.equity_or_lmic_requirement
+        or opportunity.global_majority_access != "unclear"
+    )
+
+
 def to_public_opportunity(opportunity: Opportunity, *, now: datetime | None = None) -> PublicOpportunityRecord:
     source_state = resolve_source_state(opportunity.source_id)
     if source_state not in {SourceState.structured_beta, SourceState.structured_beta_detail}:
@@ -83,6 +115,8 @@ def to_public_opportunity(opportunity: Opportunity, *, now: datetime | None = No
         warnings.append("No verified closing date in structured source data")
     if opportunity.global_majority_access == "unclear":
         warnings.append("Global Majority participation route is not yet deterministically verified")
+    if not _has_applicant_route_evidence(opportunity):
+        warnings.append("Applicant country and organisation routes are not yet deterministically verified")
     return PublicOpportunityRecord(
         source_id=opportunity.source_id,
         external_id=opportunity.external_id,
@@ -100,6 +134,17 @@ def to_public_opportunity(opportunity: Opportunity, *, now: datetime | None = No
         min_award=opportunity.min_award,
         max_award=opportunity.max_award,
         total_fund=opportunity.total_fund,
+        applicant_types=opportunity.applicant_types,
+        eligible_countries=opportunity.eligible_countries,
+        excluded_countries=opportunity.excluded_countries,
+        lead_countries=opportunity.lead_countries,
+        partner_countries=opportunity.partner_countries,
+        eligible_income_groups=opportunity.eligible_income_groups,
+        oda_only=opportunity.oda_only,
+        consortium_required=opportunity.consortium_required,
+        local_partner_required=opportunity.local_partner_required,
+        lead_location_rule=opportunity.lead_location_rule,
+        equity_or_lmic_requirement=opportunity.equity_or_lmic_requirement,
         global_majority_access=opportunity.global_majority_access,
         provenance_note=opportunity.provenance_note,
         warnings=warnings,
