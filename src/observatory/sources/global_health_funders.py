@@ -142,3 +142,22 @@ async def discover_idrc_opportunities(limit: int = 20) -> tuple[str, ...]:
             if len(found) >= limit:
                 break
     return tuple(found)
+
+
+async def grand_challenges_canada_watch_state() -> tuple[bool, str]:
+    """Return (confirmed_empty, note) without promoting GCC to structured ingestion.
+
+    The watcher accepts only an explicit no-open-opportunities statement as a
+    healthy empty state. Any changed/ambiguous page state is escalated for
+    structured verification rather than interpreted as an open call.
+    """
+    index = await fetch_funder_index("grand_challenges_canada")
+    text = " ".join(index.text.casefold().split())
+    empty_markers = (
+        "there are currently no open funding opportunities",
+        "there are no open funding opportunities",
+        "no open funding opportunities at this time",
+    )
+    if any(marker in text for marker in empty_markers):
+        return True, "Official GCC funding page explicitly reports no open funding opportunities."
+    return False, "GCC funding-page state changed or is ambiguous; verify current call structure before publishing any opportunity."
