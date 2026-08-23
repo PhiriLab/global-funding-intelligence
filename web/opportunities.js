@@ -1,3 +1,8 @@
+const opportunityStyle=document.createElement('link');
+opportunityStyle.rel='stylesheet';
+opportunityStyle.href='opportunities.css';
+document.head.appendChild(opportunityStyle);
+
 const opportunityEls={
   section:document.getElementById('opportunities'),
   grid:document.getElementById('opportunityCards'),
