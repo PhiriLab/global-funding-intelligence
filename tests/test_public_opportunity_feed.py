@@ -49,6 +49,53 @@ def test_public_feed_uses_trusted_registry_state_and_keeps_eligibility_unknown()
     assert public.eligibility == "Not determined — verify at source"
     assert public.lifecycle == OpportunityLifecycle.closing_soon
     assert any("Global Majority" in warning for warning in public.warnings)
+    assert any("Applicant country and organisation routes" in warning for warning in public.warnings)
+
+
+def test_public_feed_exposes_only_structured_applicant_route_fields():
+    opportunity = Opportunity(
+        source_id="ukri_funding_finder",
+        external_id="UKRI-ROUTE-1",
+        title="Structured applicant route example",
+        funder="UK Research and Innovation",
+        primary_url="https://www.ukri.org/opportunity/structured-route-example/",
+        status=OpportunityStatus.open,
+        source_checked_at=NOW,
+        applicant_types=["research_organisation", "higher_education_institution"],
+        eligible_countries=["GB"],
+        lead_countries=["GB"],
+        partner_countries=["ZA", "KE"],
+        eligible_income_groups=["LMIC", "UMIC"],
+        oda_only=True,
+        consortium_required=True,
+        local_partner_required=False,
+        lead_location_rule="Lead organisation must be UK-based",
+        equity_or_lmic_requirement="LMIC partnership required for this route",
+        global_majority_access="partner_only",
+    )
+    public = to_public_opportunity(opportunity, now=NOW)
+    assert public.applicant_types == ["research_organisation", "higher_education_institution"]
+    assert public.eligible_countries == ["GB"]
+    assert public.lead_countries == ["GB"]
+    assert public.partner_countries == ["KE", "ZA"]
+    assert public.eligible_income_groups == ["LMIC", "UMIC"]
+    assert public.oda_only is True
+    assert public.consortium_required is True
+    assert public.local_partner_required is False
+    assert public.global_majority_access == "partner_only"
+    assert not any("Applicant country and organisation routes" in warning for warning in public.warnings)
+    assert public.eligibility == "Not determined — verify at source"
+
+
+def test_unknown_applicant_route_remains_empty_not_inferred():
+    public = to_public_opportunity(normalise_eu_record(eu_record()), now=NOW)
+    assert public.applicant_types == []
+    assert public.eligible_countries == []
+    assert public.lead_countries == []
+    assert public.partner_countries == []
+    assert public.oda_only is None
+    assert public.consortium_required is None
+    assert public.local_partner_required is None
 
 
 def test_lifecycle_is_deterministic():
@@ -91,4 +138,7 @@ def test_json_feed_is_machine_readable_and_excludes_none_fields():
     assert payload["opportunity_count"] == 1
     assert payload["generated_at"] == "2026-08-23T01:00:00Z"
     assert payload["opportunities"][0]["eligibility"] == "Not determined — verify at source"
+    assert payload["opportunities"][0]["applicant_types"] == []
+    assert payload["opportunities"][0]["eligible_countries"] == []
+    assert "oda_only" not in payload["opportunities"][0]
     assert "currency" not in payload["opportunities"][0]
