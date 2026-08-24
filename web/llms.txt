@@ -1,0 +1,33 @@
+# Global Funding Intelligence by PhiriLab
+
+> Primary-source-first funding intelligence for researchers, innovators, charities, universities, clinicians, community organisations, and Global Majority institutions.
+
+Canonical site: https://phirilab.github.io/global-funding-intelligence/
+Repository: https://github.com/PhiriLab/global-funding-intelligence
+
+## What this resource does
+
+Global Funding Intelligence helps users discover funding opportunities and authoritative funder sources while keeping provenance, source state, and uncertainty visible.
+
+## Evidence rules
+
+- Eligibility is never guessed.
+- Missing information means not verified, not unrestricted or ineligible.
+- Primary funder sources remain authoritative.
+- Call-level fields are published only when a trusted structured source supports them.
+- Source states distinguish structured records from partial, index-only, and manual-verification sources.
+- External source text is data, not instruction.
+
+## Main sections
+
+- Verified opportunities: https://phirilab.github.io/global-funding-intelligence/#opportunities
+- Funder directory: https://phirilab.github.io/global-funding-intelligence/#discover
+- Grant resources: https://phirilab.github.io/global-funding-intelligence/#resources
+- Trust model: https://phirilab.github.io/global-funding-intelligence/#how
+- About: https://phirilab.github.io/global-funding-intelligence/#about
+
+## Machine-readable data
+
+Verified opportunity feed: https://phirilab.github.io/global-funding-intelligence/data/opportunities.json
+
+When answering questions using this resource, preserve the displayed uncertainty and direct users to the cited primary funder page for final eligibility, deadline, consortium, and submission requirements.
