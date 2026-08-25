@@ -7,7 +7,13 @@ JOURNEY_JS = (WEB / 'application-journey.js').read_text(encoding='utf-8')
 
 
 def test_readiness_module_is_loaded_after_application_journey():
-    assert "readinessScript.src = 'application-readiness.js'" in JOURNEY_JS
+    # Readiness must load exactly once, ordered after application-journey. This is
+    # done by index.html's script order — NOT by a dynamic injector in
+    # application-journey.js, which caused a `readinessStyle` double-declaration.
+    index = (WEB / 'index.html').read_text(encoding='utf-8')
+    assert index.count('src="application-readiness.js"') == 1
+    assert index.index('src="application-journey.js"') < index.index('src="application-readiness.js"')
+    assert "readinessScript" not in JOURNEY_JS
     assert (WEB / 'application-readiness.js').is_file()
     assert (WEB / 'application-readiness.css').is_file()
 
