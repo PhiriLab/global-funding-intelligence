@@ -1,0 +1,39 @@
+name: owner-report
+
+# Generates the owner-only usage & impact dashboard from Supabase aggregates and
+# uploads it as a private workflow artifact (visible only to repo collaborators).
+# It does NOT publish usage data to the public site. Skips if secrets are absent.
+
+on:
+  schedule:
+    - cron: '0 7 * * 1'   # Mondays 07:00 UTC
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'Reporting window in days'
+        required: false
+        default: '30'
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate owner report
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/owner_report.py --days "${{ github.event.inputs.days || '30' }}" --out-dir dist/owner-report
+      - name: Upload owner report artifact
+        if: ${{ hashFiles('dist/owner-report/index.html') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: gfi-owner-report
+          path: dist/owner-report
+          retention-days: 90
