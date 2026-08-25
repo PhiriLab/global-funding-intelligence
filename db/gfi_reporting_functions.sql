@@ -41,6 +41,17 @@ as $$
   select jsonb_build_object(
     'generated_at', now(),
     'window_days', p_days,
+    -- Be explicit about what each section covers. Usage events are windowed by
+    -- p_days; the feedback (pulse) and application-journey aggregates read the
+    -- cumulative private views, so they are all-time, not windowed. Counts are
+    -- event counts, never unique visitors: no visitor/session id is collected,
+    -- so users cannot be de-duplicated.
+    'windows', jsonb_build_object(
+      'usage', 'last ' || p_days || ' days',
+      'feedback', 'cumulative (all responses to date)',
+      'journey', 'cumulative (all journeys to date)',
+      'basis', 'event counts, not unique visitors'
+    ),
     'ingestion', public.gfi_ingestion_health(),
     'usage_daily', (
       select coalesce(jsonb_agg(jsonb_build_object(

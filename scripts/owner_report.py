@@ -84,16 +84,21 @@ def render_report(payload: dict) -> str:
     relevant_str = f"{relevant_pct}%" if relevant_pct is not None else "—"
     gm_responses = int(_num(pulse.get("global_majority_responses")))
 
+    windows = payload.get("windows") or {}
+    usage_window = windows.get("usage") or f"last {window_days} days"
+    feedback_window = windows.get("feedback") or "cumulative (all responses to date)"
+    journey_window = windows.get("journey") or "cumulative (all journeys to date)"
+
     tiles = "".join([
-        _tile("Visits (page loads)", f"{visits:,}", f"last {window_days} days"),
-        _tile("Primary-source click-throughs", f"{source_opens:,}", f"{ctr} of visits"),
-        _tile("Opportunity searches", f"{searches:,}"),
-        _tile("Profile rankings run", f"{rankings:,}"),
-        _tile("Usefulness responses", f"{responses:,}", "anonymous pulse"),
-        _tile("Mean usefulness", mean_use_str),
-        _tile("Would use again", return_str),
-        _tile("Found a relevant opportunity", relevant_str),
-        _tile("Global-Majority responses", f"{gm_responses:,}", "self-identified"),
+        _tile("Page loads", f"{visits:,}", f"page_ready events · {usage_window} · not unique visitors"),
+        _tile("Primary-source click-throughs", f"{source_opens:,}", f"{ctr} per page load · {usage_window}"),
+        _tile("Opportunity searches", f"{searches:,}", f"search_used events · {usage_window}"),
+        _tile("Profile rankings run", f"{rankings:,}", f"profile_ranked events · {usage_window}"),
+        _tile("Usefulness responses", f"{responses:,}", f"anonymous pulse · {feedback_window}"),
+        _tile("Mean usefulness", mean_use_str, "cumulative"),
+        _tile("Would use again", return_str, "cumulative"),
+        _tile("Found a relevant opportunity", relevant_str, "cumulative"),
+        _tile("Global-Majority responses", f"{gm_responses:,}", "self-identified · cumulative"),
     ])
 
     event_rows = "".join(
@@ -143,27 +148,30 @@ def render_report(payload: dict) -> str:
 <body>
 <header>
   <h1>Global Funding Intelligence — usage &amp; impact</h1>
-  <p class="sub">Owner-only report • generated {html.escape(str(generated))} • window: last {window_days} days</p>
+  <p class="sub">Owner-only report • generated {html.escape(str(generated))} • usage window: {html.escape(usage_window)} • feedback &amp; journey: cumulative</p>
   <p style="margin-top:10px"><span class="health {'' if events_7d>0 else 'warn'}">Ingestion: {html.escape(health)}</span>
      &nbsp;last event: {html.escape(str(last_event))}</p>
 </header>
 <main>
   <div class="grid">{tiles}</div>
-  <section><h2>Usage events</h2>
+  <section><h2>Usage events <span style="font-weight:400;color:var(--muted)">— {html.escape(usage_window)}</span></h2>
+    <p class="sub" style="margin:0 0 10px">Counts are event occurrences, not unique visitors: no visitor or session identifier is collected, so people cannot be de-duplicated.</p>
     <table><thead><tr><th>Event</th><th class="num">Count</th></tr></thead><tbody>{event_rows}</tbody></table>
   </section>
-  <section><h2>Reach &amp; equity segments <span style="font-weight:400;color:var(--muted)">(≥5 responses only)</span></h2>
+  <section><h2>Reach &amp; equity segments <span style="font-weight:400;color:var(--muted)">— {html.escape(feedback_window)}, ≥5 responses only</span></h2>
     <table><thead><tr><th>Dimension</th><th>Value</th><th class="num">Responses</th><th class="num">Mean usefulness</th></tr></thead>
     <tbody>{seg_rows}</tbody></table>
   </section>
-  <section><h2>Application journey funnel</h2>
-    <table><thead><tr><th>Stage</th><th class="num">Journeys</th></tr></thead><tbody>{funnel_rows}</tbody></table>
+  <section><h2>Application journey funnel <span style="font-weight:400;color:var(--muted)">— {html.escape(journey_window)}</span></h2>
+    <table><thead><tr><th>Stage</th><th class="num">Journeys (distinct)</th></tr></thead><tbody>{funnel_rows}</tbody></table>
   </section>
 </main>
 <footer>
   Aggregate, anonymous data only. No visitor identifiers, IP addresses, or sensitive
-  attributes are collected or shown. Segment cells with fewer than five responses are
-  suppressed. Suitable for sharing high-level figures with sponsors and collaborators.
+  attributes are collected or shown. Usage figures are event counts (page loads and
+  interactions), not unique visitors or sessions. Feedback and journey figures are
+  cumulative. Segment cells with fewer than five responses are suppressed. Suitable
+  for sharing high-level figures with sponsors and collaborators.
 </footer>
 </body></html>"""
 

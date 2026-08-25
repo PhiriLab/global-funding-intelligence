@@ -54,6 +54,19 @@ owner ad-hoc SQL        →  private.gfi_* views              (direct in the Sup
 browser (anon key)      →  INSERT only, no SELECT           (cannot read anything back)
 ```
 
+## Metric semantics (be exact about what the numbers mean)
+
+- **Usage figures are event counts, not unique visitors or sessions.** No
+  visitor/session identifier is collected, so people cannot be de-duplicated.
+  "Page loads" = `page_ready` events; it is never labelled "Visits" or "Users".
+- **Click-through** is reported *per page load* (`primary_source_open` ÷
+  `page_ready`), not per visitor.
+- **Reporting windows differ by section and are labelled per section:** usage
+  events are windowed by the report's `--days` (default 30); the usefulness pulse
+  and application-journey figures are **cumulative (all-time)**, because their
+  private views are not windowed. The owner report's `windows` block is the
+  source of truth for these labels.
+
 ## Privacy invariants (do not weaken)
 
 - No SELECT policy for `anon`/`authenticated` on any table.

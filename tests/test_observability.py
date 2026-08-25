@@ -46,6 +46,12 @@ def _fixture_payload():
     return {
         "generated_at": "2026-08-23T00:00:00+00:00",
         "window_days": 30,
+        "windows": {
+            "usage": "last 30 days",
+            "feedback": "cumulative (all responses to date)",
+            "journey": "cumulative (all journeys to date)",
+            "basis": "event counts, not unique visitors",
+        },
         "ingestion": {"last_event_at": "2026-08-22T23:00:00+00:00", "events_7d": 812, "events_24h": 96},
         "usage_totals": {
             "page_ready": 1000, "primary_source_open": 250, "search_used": 300,
@@ -67,11 +73,23 @@ def _fixture_payload():
 def test_render_report_is_pure_and_contains_key_metrics():
     html = owner_report.render_report(_fixture_payload())
     assert "<!doctype html>" in html.lower()
-    assert "1,000" in html          # visits
-    assert "25%" in html            # click-through rate (250/1000)
+    assert "1,000" in html          # page-load count
+    assert "25%" in html            # click-through per page load (250/1000)
     assert "4.2/5" in html          # mean usefulness
     assert "Africa" in html         # segment surfaced
     assert "healthy" in html        # ingestion health badge
+
+
+def test_render_report_terminology_is_exact_about_meaning():
+    html = owner_report.render_report(_fixture_payload())
+    # page_ready must not be labelled "Visits" (implies unique people we cannot dedupe).
+    assert "Page loads" in html
+    assert "Visits" not in html
+    assert "not unique visitors" in html
+    assert "per page load" in html
+    # Windows are explicit and honest: usage windowed, feedback/journey cumulative.
+    assert "last 30 days" in html
+    assert "cumulative" in html
 
 
 def test_render_report_handles_empty_payload_without_crashing():
