@@ -252,8 +252,7 @@ function observeOpportunityCards() {
 
 installJourneyPanel();
 observeOpportunityCards();
-
-const readinessScript = document.createElement('script');
-readinessScript.src = 'application-readiness.js';
-readinessScript.defer = true;
-document.body.appendChild(readinessScript);
+// application-readiness.js is loaded once by index.html's own <script> tag, so it
+// must not be injected here as well: two evaluations of the same classic script
+// redeclare its top-level `const readinessStyle` in the shared global scope and
+// throw "Identifier 'readinessStyle' has already been declared".
