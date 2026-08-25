@@ -18,13 +18,13 @@
       <span><strong>Global Funding Intelligence</strong><small>by PhiriLab</small></span>
     </a>
     <nav aria-label="Primary navigation">
-      <a href="#opportunities">Opportunities</a>
-      <a href="#discover">Funders</a>
-      <a href="#resources">Grant resources</a>
-      <a href="#how">How it works</a>
-      <a href="#about">About</a>
-      <a href="#partnerships">Partner / Sponsor</a>
-      <a href="#ecosystem">Ecosystem</a>
+      <a href="#opportunities" data-i18n="nav_opportunities">Opportunities</a>
+      <a href="#discover" data-i18n="nav_funders">Funders</a>
+      <a href="#resources" data-i18n="nav_resources">Grant resources</a>
+      <a href="#how" data-i18n="nav_how">How it works</a>
+      <a href="#about" data-i18n="nav_about">About</a>
+      <a href="#partnerships" data-i18n="nav_partner">Partner / Sponsor</a>
+      <a href="#ecosystem" data-i18n="nav_ecosystem">Ecosystem</a>
     </nav>
     <div class="top-actions">
       <button id="themeToggle" class="icon-button" type="button" aria-label="Switch colour theme" aria-pressed="false"><span aria-hidden="true">◐</span><span class="theme-label">Dark</span></button>
@@ -35,32 +35,32 @@
   <main id="top">
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">GLOBAL MAJORITY-FIRST • PRIMARY SOURCE-FIRST</p>
-        <h1>Find funding opportunities with evidence, provenance and clear uncertainty.</h1>
-        <p class="lead">A public funding intelligence hub for researchers, innovators, charities, universities, clinicians and community organisations. Search trusted funders, understand what has actually been verified, and go directly to the authoritative source before you invest time in a bid.</p>
+        <p class="eyebrow" data-i18n="hero_eyebrow">GLOBAL MAJORITY-FIRST • PRIMARY SOURCE-FIRST</p>
+        <h1 data-i18n="hero_h1">Find funding opportunities with evidence, provenance and clear uncertainty.</h1>
+        <p class="lead" data-i18n="hero_lead">A public funding intelligence hub for researchers, innovators, charities, universities, clinicians and community organisations. Search trusted funders, understand what has actually been verified, and go directly to the authoritative source before you invest time in a bid.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#opportunities">Explore verified opportunities</a>
-          <a class="button" href="#discover">Browse funding sources</a>
+          <a class="button primary" href="#opportunities" data-i18n="hero_cta1">Explore verified opportunities</a>
+          <a class="button" href="#discover" data-i18n="hero_cta2">Browse funding sources</a>
         </div>
         <div class="trust-strip" aria-label="Trust principles">
-          <span>Eligibility is never guessed</span>
-          <span>Source states are visible</span>
-          <span>Global Majority access is explicit</span>
-          <span>Primary sources are one click away</span>
+          <span data-i18n="trust_1">Eligibility is never guessed</span>
+          <span data-i18n="trust_2">Source states are visible</span>
+          <span data-i18n="trust_3">Global Majority access is explicit</span>
+          <span data-i18n="trust_4">Primary sources are one click away</span>
         </div>
       </div>
       <aside class="hero-panel" aria-label="Coverage summary">
-        <div class="metric"><strong id="sourceCount">0</strong><span>tracked funders</span></div>
-        <div class="metric"><strong id="structuredCount">0</strong><span>structured beta sources</span></div>
-        <div class="metric"><strong>100%</strong><span>primary-source links</span></div>
-        <p class="panel-note">A missing field means “not verified yet” — not “no restriction”.</p>
+        <div class="metric"><strong id="sourceCount">0</strong><span data-i18n="panel_tracked">tracked funders</span></div>
+        <div class="metric"><strong id="structuredCount">0</strong><span data-i18n="panel_structured">structured beta sources</span></div>
+        <div class="metric"><strong>100%</strong><span data-i18n="panel_links">primary-source links</span></div>
+        <p class="panel-note" data-i18n="panel_note">A missing field means “not verified yet” — not “no restriction”.</p>
       </aside>
     </section>
 
     <section id="opportunities" class="section opportunity-section">
       <div class="section-head">
-        <div><p class="eyebrow">VERIFIED OPPORTUNITIES</p><h2>Call-level intelligence, when the source supports it</h2></div>
-        <p>Only trusted structured sources can publish call-level records here. Missing fields remain unknown, and eligibility is never inferred from unstructured source text.</p>
+        <div><p class="eyebrow" data-i18n="opp_eyebrow">VERIFIED OPPORTUNITIES</p><h2 data-i18n="opp_h2">Call-level intelligence, when the source supports it</h2></div>
+        <p data-i18n="opp_intro">Only trusted structured sources can publish call-level records here. Missing fields remain unknown, and eligibility is never inferred from unstructured source text.</p>
       </div>
       <div class="opportunity-toolbar" role="search" aria-label="Opportunity filters">
         <label>Lifecycle
@@ -210,7 +210,8 @@
     <div id="dialogContent"></div>
   </dialog>
 
-  <footer><span>Global Funding Intelligence • PhiriLab</span><span><a href="#partnerships">Partnerships & sponsorship</a> • Eligibility: not determined — verify at source.</span></footer>
+  <footer><span>Global Funding Intelligence • PhiriLab</span><span><a href="#partnerships" data-i18n="footer_partnerships">Partnerships & sponsorship</a> • <span data-i18n="footer_eligibility">Eligibility: not determined — verify at source.</span></span></footer>
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
   <script src="opportunities.js"></script>
   <script src="application-journey.js"></script>
