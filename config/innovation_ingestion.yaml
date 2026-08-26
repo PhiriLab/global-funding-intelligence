@@ -18,7 +18,8 @@ sources:
 
   innosuisse_startup_innovation:
     name: Innosuisse Start-up Innovation Projects
-    automation: index_only
+    automation: structured_beta
+    notes: Rolling source-specific adapter requires the reviewed Swiss-headquarters, pre-market, age and 70/30 co-funding markers; contract changes fail closed.
 
   go_bio_next:
     name: GO-Bio next
@@ -30,7 +31,8 @@ sources:
 
   innobooster:
     name: Innobooster
-    automation: index_only
+    automation: structured_beta
+    notes: Source-specific adapter verifies the current pool/deadline, Danish SME route, DKK 200k–5m band and maximum 35% co-investment; binding guidelines remain authoritative.
 
   eic_pathfinder:
     name: EIC Pathfinder
