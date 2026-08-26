@@ -152,11 +152,23 @@ async def _read_limited_html(response: httpx.Response, max_bytes: int = MAX_BODY
 
 async def fetch_primary_html(source_id: str, url: str, *, keywords: tuple[str, ...] = ("fund", "grant", "opportun", "call", "award"), timeout: float = 20.0) -> FundingSnapshot:
     _assert_public_https_url(url)
-    headers = {"User-Agent": "PhiriLab-Research-Observatory/1.0 funding-intelligence"}
-    current = canonicalise_url(url)
+    headers = {
+        "User-Agent": "PhiriLab-GFI/1.0 (+https://phirilab.github.io/global-funding-intelligence/)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-GB,en;q=0.9",
+    }
+    # Preserve the exact authoritative request path (including a meaningful trailing
+    # slash) while following redirects. canonicalise_url() is intentionally used for
+    # stored identity/provenance, not for the next network request: stripping a
+    # server-required trailing slash can otherwise create a redirect loop.
+    current = url
+    seen_requests: set[str] = set()
     async with httpx.AsyncClient(timeout=timeout, headers=headers, follow_redirects=False) as client:
         for redirect_count in range(MAX_REDIRECTS + 1):
             _assert_public_https_url(current)
+            if current in seen_requests:
+                raise ValueError("redirect loop from funding source")
+            seen_requests.add(current)
             async with client.stream("GET", current) as response:
                 if response.is_redirect:
                     if redirect_count >= MAX_REDIRECTS:
@@ -164,8 +176,9 @@ async def fetch_primary_html(source_id: str, url: str, *, keywords: tuple[str, .
                     location = response.headers.get("location")
                     if not location:
                         raise ValueError("redirect response missing Location header")
-                    current = canonicalise_url(urljoin(current, location))
-                    _assert_public_https_url(current)
+                    next_url = urljoin(str(response.url), location)
+                    _assert_public_https_url(next_url)
+                    current = next_url
                     continue
                 response.raise_for_status()
                 raw_bytes = await _read_limited_html(response)
@@ -175,7 +188,6 @@ async def fetch_primary_html(source_id: str, url: str, *, keywords: tuple[str, .
                 raw = raw_bytes.decode(encoding, errors="replace")
                 safe_text = sanitise_external_text(raw)
                 digest = hashlib.sha256(raw_bytes).hexdigest()
-                links = _candidate_links(final, raw, keywords)
+                links = _candidate_links(str(response.url), raw, keywords)
                 UntrustedContent(source_url=final, text=safe_text)
                 return FundingSnapshot(source_id=source_id, source_url=canonicalise_url(url), final_url=final, status_code=response.status_code, text=safe_text, content_hash=digest, candidate_links=links)
-    raise RuntimeError("funding source fetch did not return a terminal response")
