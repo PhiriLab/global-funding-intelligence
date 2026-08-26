@@ -90,11 +90,11 @@ def normalise_eu_record(record: dict[str, Any]) -> Opportunity:
     title = str(_first(record, "title", "topicTitle", "name", "content") or identifier)
     programme = _first(record, "frameworkProgrammeDescription", "frameworkProgramme", "programme", "programmePeriod")
     status_raw = str(_first(record, "statusDescription", "status", "callStatus") or "").lower()
-    if "open" in status_raw or status_raw in {"31094501", "31094502"}:
+    if "open" in status_raw or status_raw == "31094502":
         status = OpportunityStatus.open
-    elif "forth" in status_raw or "upcoming" in status_raw or status_raw == "31094503":
+    elif "forth" in status_raw or "upcoming" in status_raw or status_raw == "31094501":
         status = OpportunityStatus.upcoming
-    elif "closed" in status_raw:
+    elif "closed" in status_raw or status_raw == "31094503":
         status = OpportunityStatus.closed
     else:
         status = OpportunityStatus.unknown
@@ -137,7 +137,7 @@ def normalise_edctp3_records(records: tuple[dict[str, Any], ...] | list[dict[str
 async def fetch_eu_open_calls(*, timeout: float = 30.0, page_size: int = 100) -> EUFundingResult:
     query = {"bool": {"must": [
         {"terms": {"type": ["1", "2", "8"]}},
-        {"terms": {"status": ["31094501", "31094502", "31094503"]}},
+        {"terms": {"status": ["31094501", "31094502"]}},
         {"term": {"programmePeriod": "2021 - 2027"}},
     ]}}
     size = max(1, min(page_size, 1000))
