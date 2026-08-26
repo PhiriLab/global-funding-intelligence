@@ -8,7 +8,8 @@ create table if not exists public.gfi_usage_events (
   created_at timestamptz not null default now(),
   event_name text not null check (event_name in (
     'page_ready','feed_ready','feed_unavailable','filter_change',
-    'search_used','profile_ranked','primary_source_open','pulse_submitted'
+    'search_used','profile_ranked','primary_source_open','pulse_submitted',
+    'source_impression'
   )),
   page text not null default 'global-funding-intelligence',
   embedded boolean not null default true,
@@ -45,7 +46,7 @@ on public.gfi_usage_events
 for insert
 to anon, authenticated
 with check (
-  event_name in ('page_ready','feed_ready','feed_unavailable','filter_change','search_used','profile_ranked','primary_source_open','pulse_submitted')
+  event_name in ('page_ready','feed_ready','feed_unavailable','filter_change','search_used','profile_ranked','primary_source_open','pulse_submitted','source_impression')
   and page = 'global-funding-intelligence'
   and jsonb_typeof(properties) = 'object'
 );
