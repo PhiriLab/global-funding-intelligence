@@ -82,11 +82,14 @@ def main() -> None:
         search.fill("")
         page.wait_for_function("Number(document.querySelector('#opportunityCount').textContent) > 0")
 
-        # Country sanitizer is part of the applicant-route interaction path.
+        # Country input must uppercase valid ISO letters and strip non-letters.
         country = page.locator("#opportunityCountry")
-        country.fill("g1b")
+        country.fill("gb")
         if country.input_value() != "GB":
-            fail(f"country input sanitizer failed: {country.input_value()!r}")
+            fail(f"country uppercase sanitizer failed: {country.input_value()!r}")
+        country.fill("1")
+        if country.input_value() != "":
+            fail(f"country invalid-character sanitizer failed: {country.input_value()!r}")
         country.fill("")
 
         # Primary-source CTA must remain a real external link.
