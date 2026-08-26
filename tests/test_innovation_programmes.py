@@ -1,8 +1,13 @@
 from pathlib import Path
 
+import pytest
 import yaml
 
-from observatory.innovation_programmes import load_innovation_programmes, programme_index
+from observatory.innovation_programmes import (
+    InnovationOpportunityMetadata,
+    load_innovation_programmes,
+    programme_index,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -78,3 +83,38 @@ def test_secondary_discovery_source_is_explicitly_not_primary():
     sources = {item["id"]: item for item in registry["sources"]}
     assert sources["france_i_lab"]["authority"] == "secondary"
     assert sources["france_i_lab"]["source_type"] == "discovery_only"
+
+
+def test_innovation_metadata_supports_startup_spinout_and_cofunding_fields():
+    meta = InnovationOpportunityMetadata(
+        opportunity_class="spinout_funding",
+        venture_stages=["preseed"],
+        spinout_route=True,
+        startup_age_limit_years=3,
+        company_country_requirements=["Austria"],
+        cross_border_required=False,
+        women_led_target=True,
+        cofunding_rate_percent=70,
+        funding_instrument="non_dilutive_grant",
+        programme_family="example",
+        trl_min=2,
+        trl_max=5,
+    )
+    assert meta.spinout_route is True
+    assert meta.cofunding_rate_percent == 70
+    assert meta.funding_instrument == "non_dilutive_grant"
+
+
+def test_innovation_metadata_does_not_guess_missing_fields():
+    meta = InnovationOpportunityMetadata()
+    assert meta.opportunity_class is None
+    assert meta.cross_border_required is None
+    assert meta.women_led_target is None
+    assert meta.funding_instrument == "unknown"
+
+
+def test_innovation_metadata_rejects_invalid_ranges():
+    with pytest.raises(ValueError):
+        InnovationOpportunityMetadata(trl_min=6, trl_max=3)
+    with pytest.raises(ValueError):
+        InnovationOpportunityMetadata(cofunding_rate_percent=120)
