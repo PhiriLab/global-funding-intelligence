@@ -69,7 +69,11 @@ function opportunityLifecycleLabel(value) {
 function opportunityDate(value) {
   if (!value) return 'Not verified';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'Not verified' : new Intl.DateTimeFormat(undefined, {dateStyle:'medium', timeStyle:'short', timeZoneName:'short'}).format(date);
+  if (Number.isNaN(date.getTime())) return 'Not verified';
+  return new Intl.DateTimeFormat(undefined, {
+    year:'numeric', month:'short', day:'numeric',
+    hour:'2-digit', minute:'2-digit', timeZoneName:'short'
+  }).format(date);
 }
 
 function opportunityAmount(item) {
@@ -239,13 +243,15 @@ async function loadOpportunityFeed() {
   const renderStep = (label, fn) => { try { fn(); } catch (error) { console.warn(`Opportunity feed render step failed: ${label}`, error); } };
   renderStep('organisation-options', populateOrganisationOptions);
   renderStep('source-health', () => renderSourceHealth(payload.source_health));
-  const freshness = opportunityFreshness(payload.generated_at);
-  if (opportunityEls.status) {
-    opportunityEls.status.dataset.freshness = freshness.stale ? 'stale' : 'current';
-    opportunityEls.status.textContent = freshness.stale
-      ? `${freshness.label} • verify current status at each primary call before acting`
-      : (opportunityFeed.length ? `${freshness.label} • ${opportunityFeed.length} structured opportunities` : `${freshness.label} • no structured opportunities published yet`);
-  }
+  renderStep('feed-status', () => {
+    const freshness = opportunityFreshness(payload.generated_at);
+    if (opportunityEls.status) {
+      opportunityEls.status.dataset.freshness = freshness.stale ? 'stale' : 'current';
+      opportunityEls.status.textContent = freshness.stale
+        ? `${freshness.label} • verify current status at each primary call before acting`
+        : (opportunityFeed.length ? `${freshness.label} • ${opportunityFeed.length} structured opportunities` : `${freshness.label} • no structured opportunities published yet`);
+    }
+  });
   renderStep('opportunity-cards', renderOpportunities);
   renderStep('profile-ranking', renderProfileRanking);
   gfiTrack('feed_ready', {opportunity_count:opportunityFeed.length, source_health_count:Array.isArray(payload.source_health) ? payload.source_health.length : 0});
