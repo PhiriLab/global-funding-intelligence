@@ -146,7 +146,7 @@ function routeSummary(item, country) {
 function populateOrganisationOptions() {
   if (!opportunityEls.organisation) return;
   const current = opportunityEls.organisation.value;
-  const values = [...new Set(opportunityFeed.flatMap(item => item.applicant_types || []))].sort((a,b) => a.localeCompare(b));
+  const values = [...new Set(opportunityFeed.flatMap(item => item.applicant_types || []).filter(value => typeof value === 'string'))].sort((a,b) => a.localeCompare(b));
   opportunityEls.organisation.innerHTML = '<option value="all">All organisation types</option><option value="unknown">Not verified</option>' +
     values.map(value => `<option value="${opportunityEscape(value)}">${opportunityEscape(value.replaceAll('_',' '))}</option>`).join('');
   if ([...opportunityEls.organisation.options].some(option => option.value === current)) opportunityEls.organisation.value = current;
@@ -214,24 +214,12 @@ function gfiTrack(event, properties = {}) {
 
 async function loadOpportunityFeed() {
   if (!opportunityEls.grid) return;
+  let payload;
   try {
     const response = await fetch('data/opportunities.json', {cache:'no-store'});
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const payload = await response.json();
+    payload = await response.json();
     if (payload?.schema_version !== 1 || !Array.isArray(payload.opportunities)) throw new Error('Unsupported opportunity feed schema');
-    opportunityFeed = payload.opportunities;
-    populateOrganisationOptions();
-    renderSourceHealth(payload.source_health);
-    const freshness = opportunityFreshness(payload.generated_at);
-    if (opportunityEls.status) {
-      opportunityEls.status.dataset.freshness = freshness.stale ? 'stale' : 'current';
-      opportunityEls.status.textContent = freshness.stale
-        ? `${freshness.label} • verify current status at each primary call before acting`
-        : (opportunityFeed.length ? `${freshness.label} • ${opportunityFeed.length} structured opportunities` : `${freshness.label} • no structured opportunities published yet`);
-    }
-    renderOpportunities();
-    renderProfileRanking();
-    gfiTrack('feed_ready', {opportunity_count:opportunityFeed.length, source_health_count:Array.isArray(payload.source_health) ? payload.source_health.length : 0});
   } catch (error) {
     opportunityFeed = [];
     renderSourceHealth([]);
@@ -243,7 +231,24 @@ async function loadOpportunityFeed() {
     if (opportunityEls.count) opportunityEls.count.textContent = '0';
     gfiTrack('feed_unavailable', {});
     console.warn('Opportunity feed unavailable', error);
+    return;
   }
+  // The feed was retrieved and validated: it IS available. Render each view independently so a
+  // fault in one section cannot blank the feed or mislabel a retrieved feed as unavailable.
+  opportunityFeed = payload.opportunities;
+  const renderStep = (label, fn) => { try { fn(); } catch (error) { console.warn(`Opportunity feed render step failed: ${label}`, error); } };
+  renderStep('organisation-options', populateOrganisationOptions);
+  renderStep('source-health', () => renderSourceHealth(payload.source_health));
+  const freshness = opportunityFreshness(payload.generated_at);
+  if (opportunityEls.status) {
+    opportunityEls.status.dataset.freshness = freshness.stale ? 'stale' : 'current';
+    opportunityEls.status.textContent = freshness.stale
+      ? `${freshness.label} • verify current status at each primary call before acting`
+      : (opportunityFeed.length ? `${freshness.label} • ${opportunityFeed.length} structured opportunities` : `${freshness.label} • no structured opportunities published yet`);
+  }
+  renderStep('opportunity-cards', renderOpportunities);
+  renderStep('profile-ranking', renderProfileRanking);
+  gfiTrack('feed_ready', {opportunity_count:opportunityFeed.length, source_health_count:Array.isArray(payload.source_health) ? payload.source_health.length : 0});
 }
 
 [opportunityEls.filter, opportunityEls.organisation, opportunityEls.gmRoute, opportunityEls.evidence].forEach(el => el?.addEventListener('change', renderOpportunities));

@@ -101,6 +101,16 @@ def test_opportunity_feed_failure_cannot_break_funder_directory():
     assert "verified funder directory remains available" in OPPORTUNITIES_JS
 
 
+def test_feed_unavailable_means_retrieval_failed_not_a_render_fault():
+    # A retrieved-and-valid feed must never be mislabelled "unavailable" because one render
+    # step threw. "feed_unavailable" is emitted only from the fetch/parse/schema catch, and
+    # each render view runs in isolation so a fault in one cannot blank the feed.
+    assert OPPORTUNITIES_JS.count("gfiTrack('feed_unavailable'") == 1
+    assert "const renderStep = (label, fn) =>" in OPPORTUNITIES_JS
+    assert "renderStep('opportunity-cards', renderOpportunities)" in OPPORTUNITIES_JS
+    assert "gfiTrack('feed_ready'" in OPPORTUNITIES_JS
+
+
 def test_opportunity_feed_visibly_discloses_staleness():
     assert "OPPORTUNITY_STALE_HOURS = 36" in OPPORTUNITIES_JS
     assert "Feed is stale" in OPPORTUNITIES_JS
