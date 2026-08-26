@@ -39,7 +39,7 @@ def test_innosuisse_rolling_route_preserves_swiss_and_cofunding_constraints(monk
     opportunity = asyncio.run(ei.fetch_innosuisse_startup_opportunity(now=NOW))
     assert opportunity.status.value == "rolling"
     assert opportunity.rolling is True
-    assert opportunity.eligible_countries == ["Switzerland"]
+    assert opportunity.eligible_countries == ["CH"]
     assert opportunity.consortium_required is False
     assert opportunity.global_majority_access == "restricted"
     assert "70%" in (opportunity.provenance_note or "")
@@ -75,7 +75,7 @@ def test_innobooster_current_pool_preserves_amount_and_danish_route(monkeypatch)
     assert opportunity.currency == "DKK"
     assert opportunity.min_award == 200_000
     assert opportunity.max_award == 5_000_000
-    assert opportunity.eligible_countries == ["Denmark"]
+    assert opportunity.eligible_countries == ["DK"]
     assert opportunity.global_majority_access == "restricted"
     assert opportunity.closing_at == datetime(2026, 10, 15, 10, 0, tzinfo=timezone.utc)
     assert "35%" in (opportunity.provenance_note or "")
