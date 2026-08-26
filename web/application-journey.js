@@ -253,7 +253,6 @@ function observeOpportunityCards() {
 installJourneyPanel();
 observeOpportunityCards();
 
-const readinessScript = document.createElement('script');
-readinessScript.src = 'application-readiness.js';
-readinessScript.defer = true;
-document.body.appendChild(readinessScript);
+// application-readiness.js is loaded once by index.html after application-journey.js.
+// Do not dynamically inject it here: a second evaluation redeclares top-level
+// lexical bindings such as readinessStyle and causes a browser runtime error.
