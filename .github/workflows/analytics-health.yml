@@ -1,0 +1,44 @@
+name: analytics-health
+
+# Ingestion self-monitoring: confirms usage events are actually landing in
+# Supabase. Fails (alerting the owner via GitHub) if no events in 7 days.
+# Skips cleanly if the secrets are not configured, so it never cries wolf.
+
+on:
+  schedule:
+    - cron: '23 */6 * * *'   # every 6 hours
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe Supabase ingestion health
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python - <<'PY'
+          import json, os, sys, urllib.request
+          url = os.environ.get('SUPABASE_URL')
+          key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+          if not url or not key:
+              print('SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set — skipping (configure secrets to enable).')
+              sys.exit(0)
+          req = urllib.request.Request(
+              url.rstrip('/') + '/rest/v1/rpc/gfi_ingestion_health',
+              data=b'{}', method='POST',
+              headers={'apikey': key, 'Authorization': f'Bearer {key}', 'Content-Type': 'application/json'},
+          )
+          with urllib.request.urlopen(req, timeout=30) as r:
+              health = json.loads(r.read().decode('utf-8'))
+          print('ingestion health:', json.dumps(health))
+          events_7d = health.get('events_7d') or 0
+          if events_7d == 0:
+              print('::error::No usage events received in the last 7 days. The browser->Supabase telemetry path is likely broken (schema unapplied, project paused, key/URL drift, or the live surface is not loading opportunities.js).')
+              sys.exit(1)
+          print(f'OK: {events_7d} events in the last 7 days.')
+          PY
