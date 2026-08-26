@@ -16,6 +16,58 @@ ProgrammeClass = Literal[
 ]
 Priority = Literal["P1", "P2", "P3"]
 GlobalMajorityRelevance = Literal["high", "mixed", "low"]
+FundingInstrument = Literal[
+    "grant",
+    "non_dilutive_grant",
+    "cofunded_grant",
+    "blended_finance",
+    "equity",
+    "loan",
+    "prize",
+    "investor_access",
+    "accelerator",
+    "training",
+    "unknown",
+]
+OpportunityClass = Literal[
+    "research_grant",
+    "innovation_grant",
+    "startup_funding",
+    "spinout_funding",
+    "deep_tech",
+    "cascade_funding",
+    "ecosystem_support",
+    "other",
+]
+
+
+class InnovationOpportunityMetadata(BaseModel):
+    """Innovation/start-up fields that remain evidence-gated like eligibility.
+
+    These fields are intentionally separate from the core Opportunity model in the
+    first migration tranche. Adapters can populate them only from authoritative
+    programme/call evidence; absence remains unknown rather than being inferred.
+    """
+
+    opportunity_class: OpportunityClass | None = None
+    venture_stages: list[str] = Field(default_factory=list)
+    spinout_route: bool | None = None
+    startup_age_limit_years: float | None = Field(default=None, ge=0)
+    company_country_requirements: list[str] = Field(default_factory=list)
+    cross_border_required: bool | None = None
+    women_led_target: bool | None = None
+    cofunding_rate_percent: float | None = Field(default=None, ge=0, le=100)
+    funding_instrument: FundingInstrument = "unknown"
+    programme_family: str | None = None
+    dedupe_parent: str | None = None
+    trl_min: int | None = Field(default=None, ge=1, le=9)
+    trl_max: int | None = Field(default=None, ge=1, le=9)
+
+    @model_validator(mode="after")
+    def validate_ranges(self) -> "InnovationOpportunityMetadata":
+        if self.trl_min is not None and self.trl_max is not None and self.trl_min > self.trl_max:
+            raise ValueError("trl_min cannot exceed trl_max")
+        return self
 
 
 class InnovationProgramme(BaseModel):
