@@ -6,6 +6,7 @@ from enum import Enum
 from pydantic import BaseModel, Field, HttpUrl
 
 from .funding_models import Opportunity, OpportunityStatus
+from .innovation_programmes import dedupe_parent_for
 from .public_funding_export import SourceState, resolve_source_state
 
 
@@ -168,8 +169,26 @@ def to_public_opportunity(opportunity: Opportunity, *, now: datetime | None = No
     )
 
 
+def _canonical_source_id(source_id: str) -> str:
+    return dedupe_parent_for(source_id) or source_id
+
+
 def _record_identity(record: PublicOpportunityRecord) -> tuple[str, str]:
-    return record.source_id, record.external_id or str(record.primary_url)
+    return _canonical_source_id(record.source_id), record.external_id or str(record.primary_url)
+
+
+def _prefer_record(existing: PublicOpportunityRecord, candidate: PublicOpportunityRecord, canonical_source_id: str) -> PublicOpportunityRecord:
+    """Prefer the parent system-of-record when programme and parent overlap.
+
+    If only a programme view is available, it remains publishable as a fallback.
+    If the authoritative parent source later returns the same external id, the
+    parent wins even when the programme page was checked more recently.
+    """
+    existing_is_parent = existing.source_id == canonical_source_id
+    candidate_is_parent = candidate.source_id == canonical_source_id
+    if existing_is_parent != candidate_is_parent:
+        return existing if existing_is_parent else candidate
+    return candidate if candidate.source_checked_at > existing.source_checked_at else existing
 
 
 def build_public_feed(
@@ -186,8 +205,10 @@ def build_public_feed(
         record = to_public_opportunity(opportunity, now=generated_at)
         key = _record_identity(record)
         existing = deduped.get(key)
-        if existing is None or record.source_checked_at > existing.source_checked_at:
+        if existing is None:
             deduped[key] = record
+        else:
+            deduped[key] = _prefer_record(existing, record, key[0])
     lifecycle_rank = {
         OpportunityLifecycle.closing_soon: 0,
         OpportunityLifecycle.open: 1,
