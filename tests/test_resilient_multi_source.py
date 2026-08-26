@@ -39,6 +39,12 @@ def test_eu_failure_does_not_abort_other_sources(monkeypatch):
     async def gcc():
         return SourceCollectionResult("grand_challenges_canada", (), 0, 0)
 
+    async def empty_eurostars(*, limit, generated_at):
+        return result("eurostars")
+
+    async def empty_women_techeu(*, generated_at):
+        return result("women_techeu")
+
     monkeypatch.setattr(resilient, "collect_eu", failed_eu)
     monkeypatch.setattr(resilient, "collect_ukri", good_ukri)
     monkeypatch.setattr(resilient, "collect_nihr", empty)
@@ -47,10 +53,13 @@ def test_eu_failure_does_not_abort_other_sources(monkeypatch):
     monkeypatch.setattr(resilient, "collect_idrc", empty)
     monkeypatch.setattr(resilient, "collect_fogarty", empty)
     monkeypatch.setattr(resilient, "collect_grand_challenges_canada_watch", gcc)
+    monkeypatch.setattr(resilient, "collect_eurostars", empty_eurostars)
+    monkeypatch.setattr(resilient, "collect_women_techeu", empty_women_techeu)
 
     feed, results = asyncio.run(resilient.fetch_resilient_multi_source_public_feed(generated_at=NOW))
     assert feed.opportunity_count == 1
     assert feed.opportunities[0].source_id == "ukri_funding_finder"
     eu_health = next(x for x in feed.source_health if x.source_id == "eu_funding_tenders")
     assert eu_health.health.value == "unavailable"
-    assert len(results) == 8
+    assert len(results) == 10
+    assert {item.source_id for item in results} >= {"eurostars", "women_techeu"}
