@@ -23,7 +23,7 @@ def test_eu_search_results_flatten_nested_metadata():
     opportunity = normalise_eu_record(records[0])
     assert opportunity.external_id == 'HORIZON-TEST-01'
     assert opportunity.title == 'Test call'
-    assert opportunity.primary_url == records[0]['url']
+    assert str(opportunity.primary_url) == records[0]['url']
     assert opportunity.status.value == 'open'
 
 
