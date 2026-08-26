@@ -31,7 +31,7 @@ def _is_ukri_opportunity_detail(url: str) -> bool:
     path = parsed.path.rstrip("/")
     if host not in {"ukri.org", "www.ukri.org"}:
         return False
-    if path == "/opportunity" or path.startswith("/opportunity/page/"):
+    if path in {"/opportunity", "/opportunity/feed"} or path.startswith("/opportunity/page/"):
         return False
     return bool(re.fullmatch(r"/opportunity/[^/]+", path))
 
