@@ -12,6 +12,8 @@ from observatory.funding_models import Opportunity, OpportunityStatus
 
 EUROSTARS_INDEX = "https://www.eurekanetwork.org/programmes-and-calls/eurostars/"
 WOMEN_TECHEU_ACTIVE = "https://womentecheurope.eu/active-calls/"
+INNOSUISSE_STARTUP = "https://www.innosuisse.admin.ch/en/start-up-innovation-projects"
+INNOBOOSTER = "https://innovationsfonden.dk/en/p/innobooster"
 
 
 class _H1Parser(HTMLParser):
@@ -76,6 +78,20 @@ def _parse_brussels_datetime(value: str | None) -> datetime | None:
     ):
         try:
             local = datetime.strptime(clean, fmt).replace(tzinfo=ZoneInfo("Europe/Brussels"))
+            return local.astimezone(timezone.utc)
+        except ValueError:
+            continue
+    return None
+
+
+def _parse_copenhagen_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    clean = re.sub(r"\bat\b", "", value, flags=re.I)
+    clean = re.sub(r"\s+", " ", clean).strip(" ,")
+    for fmt in ("%d %B %Y, %H:%M", "%d %B %Y %H:%M", "%d %B %Y"):
+        try:
+            local = datetime.strptime(clean, fmt).replace(tzinfo=ZoneInfo("Europe/Copenhagen"))
             return local.astimezone(timezone.utc)
         except ValueError:
             continue
@@ -252,4 +268,117 @@ async def fetch_women_techeu_opportunity(*, now: datetime | None = None) -> Oppo
 
 async def collect_women_techeu_opportunities(*, now: datetime | None = None) -> tuple[Opportunity, ...]:
     item = await fetch_women_techeu_opportunity(now=now)
+    return () if item.status == OpportunityStatus.closed else (item,)
+
+
+async def fetch_innosuisse_startup_opportunity(*, now: datetime | None = None) -> Opportunity:
+    now = now or datetime.now(timezone.utc)
+    snapshot = await fetch_primary_html(
+        "innosuisse_startup_innovation",
+        INNOSUISSE_STARTUP,
+        keywords=("start-up", "innovation", "application", "fund", "market"),
+    )
+    lines = visible_lines(snapshot.text)
+    text = _normalised_text(lines)
+    lowered = text.casefold()
+
+    required_markers = (
+        "projects can be submitted on an ongoing basis",
+        "based in switzerland",
+        "covers a maximum of 70 per cent of the direct project costs",
+        "has not been established for more than 5 years",
+    )
+    if not all(marker in lowered for marker in required_markers):
+        raise ValueError("Innosuisse start-up programme page no longer matches the reviewed structured contract")
+
+    provenance = (
+        "The authoritative Innosuisse page states that applications are ongoing with no tenders; the applicant start-up must be headquartered in Switzerland and registered in the Swiss commercial register, normally be no more than five years old (up to ten years in exceptional cases), and be before first market entry. "
+        "Innosuisse covers at most 70% of direct project costs and the start-up bears at least 30%. A research partner is not required and is not supported as a direct subsidy recipient."
+    )
+    return Opportunity(
+        source_id="innosuisse_startup_innovation",
+        external_id="start-up-innovation-projects",
+        title="Innosuisse Start-up Innovation Projects",
+        funder="Innosuisse — Swiss Innovation Agency",
+        programme="Start-up Innovation Projects",
+        primary_url=snapshot.final_url,
+        status=OpportunityStatus.rolling,
+        applicant_types=["science-based start-up", "pre-market start-up"],
+        eligible_countries=["Switzerland"],
+        consortium_required=False,
+        lead_location_rule="Applicant start-up headquarters must be in Switzerland and the company must be registered in the Swiss commercial register.",
+        rolling=True,
+        global_majority_access="restricted",
+        source_checked_at=now,
+        provenance_note=provenance,
+        raw_source_hash=snapshot.content_hash,
+    )
+
+
+async def collect_innosuisse_startup_opportunities(*, now: datetime | None = None) -> tuple[Opportunity, ...]:
+    return (await fetch_innosuisse_startup_opportunity(now=now),)
+
+
+async def fetch_innobooster_opportunity(*, now: datetime | None = None) -> Opportunity:
+    now = now or datetime.now(timezone.utc)
+    snapshot = await fetch_primary_html(
+        "innobooster",
+        INNOBOOSTER,
+        keywords=("innobooster", "application", "fund", "investment", "company"),
+    )
+    lines = visible_lines(snapshot.text)
+    text = _normalised_text(lines)
+    lowered = text.casefold()
+
+    required_markers = (
+        "danish small and medium-sized enterprises",
+        "between 200,000 dkk and 5 million dkk",
+        "maximum of 35%",
+    )
+    if not all(marker in lowered for marker in required_markers):
+        raise ValueError("Innobooster page no longer matches the reviewed structured contract")
+
+    current_match = re.search(
+        r"Innobooster,\s*4th pool 2026.*?15 October 2026,?\s*at\s*12:00 noon",
+        text,
+        flags=re.I,
+    )
+    if not current_match:
+        raise ValueError("current Innobooster 2026 pool/deadline could not be verified")
+
+    opening_at = datetime(2026, 8, 20, 0, 0, tzinfo=ZoneInfo("Europe/Copenhagen")).astimezone(timezone.utc)
+    closing_at = datetime(2026, 10, 15, 12, 0, tzinfo=ZoneInfo("Europe/Copenhagen")).astimezone(timezone.utc)
+    status = _status_for_window(opening_at, closing_at, now)
+
+    provenance = (
+        "The authoritative Innovation Fund Denmark page identifies Innobooster as support for Danish SMEs, including entrepreneurial companies. "
+        "For the 4th pool of 2026 the page gives an application window from 20 August to 15 October 2026, with a 12:00 noon deadline, funding between DKK 200,000 and DKK 5 million, and a maximum 35% co-investment in relevant project expenses. "
+        "The binding programme guidelines remain authoritative where the English web translation differs."
+    )
+    return Opportunity(
+        source_id="innobooster",
+        external_id="innobooster-pool-4-2026",
+        title="Innobooster — 4th pool 2026",
+        funder="Innovation Fund Denmark",
+        programme="Innobooster",
+        primary_url=snapshot.final_url,
+        status=status,
+        applicant_types=["Danish SME", "entrepreneurial company"],
+        eligible_countries=["Denmark"],
+        consortium_required=False,
+        lead_location_rule="Applicant must be a Danish SME or entrepreneurial company satisfying the current Innobooster company and financial criteria.",
+        currency="DKK",
+        min_award=200_000,
+        max_award=5_000_000,
+        opening_at=opening_at,
+        closing_at=closing_at,
+        global_majority_access="restricted",
+        source_checked_at=now,
+        provenance_note=provenance,
+        raw_source_hash=snapshot.content_hash,
+    )
+
+
+async def collect_innobooster_opportunities(*, now: datetime | None = None) -> tuple[Opportunity, ...]:
+    item = await fetch_innobooster_opportunity(now=now)
     return () if item.status == OpportunityStatus.closed else (item,)
