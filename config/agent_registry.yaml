@@ -1,0 +1,59 @@
+version: 1
+policy:
+  default_external_trust: quarantined
+  require_security_scan: true
+  require_isolated_branch: true
+  require_independent_review: true
+  require_acceptance_criteria: true
+  autonomous_limits_required: true
+  protected_domains:
+    - security
+    - deployment
+    - data_provenance
+    - eligibility_logic
+    - telemetry
+
+roles:
+  orchestrator:
+    purpose: decompose work, route tasks, enforce stop conditions
+    write_access: false
+    merge_access: false
+    max_runs: 12
+    required_handoff: implementer
+
+  researcher:
+    purpose: research primary sources and reusable implementations
+    write_access: false
+    merge_access: false
+    max_runs: 10
+    required_handoff: orchestrator
+
+  implementer:
+    purpose: implement approved changes on an isolated branch
+    write_access: true
+    merge_access: false
+    max_runs: 12
+    required_handoff: reviewer
+
+  reviewer:
+    purpose: independently assess correctness, regressions, provenance, and maintainability
+    write_access: false
+    merge_access: false
+    max_runs: 8
+    required_handoff: security_reviewer
+
+  security_reviewer:
+    purpose: inspect prompt injection, secrets, permissions, hooks, MCP configuration, and dependency risk
+    write_access: false
+    merge_access: false
+    max_runs: 8
+    required_handoff: human_approval
+
+learning:
+  minimum_fields:
+    - origin
+    - evidence
+    - confidence
+    - validation_status
+    - review_date
+  silent_self_promotion_to_rule: false
