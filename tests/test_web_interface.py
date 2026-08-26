@@ -147,7 +147,7 @@ def test_applicant_matcher_is_gate_first_and_transparent():
 
 def test_usage_telemetry_uses_publishable_key_and_is_privacy_bounded():
     assert "GFI_ALLOWED_EVENTS" in OPPORTUNITIES_JS
-    for event in ("page_ready", "feed_ready", "filter_change", "search_used", "profile_ranked", "primary_source_open", "pulse_submitted"):
+    for event in ("page_ready", "feed_ready", "filter_change", "search_used", "profile_ranked", "primary_source_open", "pulse_submitted", "source_impression"):
         assert event in OPPORTUNITIES_JS
     assert "navigator.doNotTrack === '1'" in OPPORTUNITIES_JS
     assert "sb_publishable_" in OPPORTUNITIES_JS

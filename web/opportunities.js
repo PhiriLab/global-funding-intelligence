@@ -7,7 +7,8 @@ const GFI_SUPABASE_URL = 'https://wuuuvutjudlotqrnakgj.supabase.co';
 const GFI_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_vmgTqhXjCAFq7EjoU0Vd3w_hIlEfWsT';
 const GFI_ALLOWED_EVENTS = new Set([
   'page_ready', 'feed_ready', 'feed_unavailable', 'filter_change',
-  'search_used', 'profile_ranked', 'primary_source_open', 'pulse_submitted'
+  'search_used', 'profile_ranked', 'primary_source_open', 'pulse_submitted',
+  'source_impression'
 ]);
 
 const toolbar = document.querySelector('.opportunity-toolbar');
@@ -320,10 +321,41 @@ function renderProfileRanking(track = false) {
   if (track) gfiTrack('profile_ranked', {result_count:ranked.length, apply_count:counts.apply, partner_count:counts.partner, verify_count:counts.verify, skip_count:counts.skip});
 }
 
+// Per-funder reach: fire one 'source_impression' the first time each funder's card is
+// actually seen this page load. Aggregate and privacy-safe (source_id only, no identifiers);
+// deduped per funder so it measures "surfaced to a visitor", not scroll volume.
+const gfiSeenImpressions = new Set();
+let gfiImpressionObserver = null;
+function gfiWatchImpression(link) {
+  const sourceId = link.dataset.sourceId;
+  if (!sourceId || sourceId === 'unknown' || gfiSeenImpressions.has(sourceId)) return;
+  if (typeof IntersectionObserver === 'undefined') {
+    gfiSeenImpressions.add(sourceId);
+    gfiTrack('source_impression', {source_id:sourceId});
+    return;
+  }
+  if (!gfiImpressionObserver) {
+    gfiImpressionObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        gfiImpressionObserver.unobserve(entry.target);
+        const id = entry.target.dataset.gfiSource;
+        if (!id || gfiSeenImpressions.has(id)) return;
+        gfiSeenImpressions.add(id);
+        gfiTrack('source_impression', {source_id:id});
+      });
+    }, {threshold:0.5});
+  }
+  const card = link.closest('.opportunity-card, .funding-card, .matcher-row') || link;
+  card.dataset.gfiSource = sourceId;
+  gfiImpressionObserver.observe(card);
+}
+
 function wireSourceLinkTelemetry() {
   document.querySelectorAll('.source-link:not([data-telemetry-wired])').forEach(link => {
     link.dataset.telemetryWired = 'true';
     link.addEventListener('click', () => gfiTrack('primary_source_open', {source_id:link.dataset.sourceId || 'unknown'}));
+    gfiWatchImpression(link);
   });
 }
 
