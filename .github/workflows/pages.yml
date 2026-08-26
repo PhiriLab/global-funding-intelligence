@@ -8,6 +8,7 @@ on:
       - 'src/observatory/**'
       - 'config/funder_ingestion.yaml'
       - 'requirements.txt'
+      - 'scripts/live_opportunities_smoke.py'
       - '.github/workflows/pages.yml'
   schedule:
     - cron: '17 6,18 * * *'
@@ -87,3 +88,11 @@ jobs:
           else:
               raise RuntimeError(f'live Pages verification failed: {last_error}')
           PY
+      - name: Install browser smoke dependencies
+        run: |
+          pip install 'playwright>=1.47,<2'
+          python -m playwright install --with-deps chromium
+      - name: Verify live Opportunities in Chromium
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: python scripts/live_opportunities_smoke.py
