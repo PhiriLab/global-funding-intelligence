@@ -44,6 +44,11 @@ PATTERNS = {
     ),
 }
 
+SECRET_ASSIGNMENT = re.compile(
+    r"(?i)(\b(?:api[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret|password)\b\s*[:=]\s*['\"]?)([^'\"\s,;]{8,})"
+)
+BEARER_TOKEN = re.compile(r"(?i)(\bauthorization\s*:\s*bearer\s+)(\S+)")
+
 
 @dataclass(frozen=True)
 class Finding:
@@ -51,6 +56,11 @@ class Finding:
     line: int
     rule: str
     excerpt: str
+
+
+def redact_sensitive_values(text: str) -> str:
+    text = SECRET_ASSIGNMENT.sub(r"\1[REDACTED]", text)
+    return BEARER_TOKEN.sub(r"\1[REDACTED]", text)
 
 
 def iter_text_files(root: Path) -> Iterable[Path]:
@@ -68,7 +78,7 @@ def scan_text(path: Path, text: str) -> list[Finding]:
     for lineno, line in enumerate(text.splitlines(), start=1):
         for rule, pattern in PATTERNS.items():
             if pattern.search(line):
-                excerpt = line.strip()
+                excerpt = redact_sensitive_values(line.strip())
                 if len(excerpt) > 180:
                     excerpt = excerpt[:177] + "..."
                 findings.append(Finding(path=path, line=lineno, rule=rule, excerpt=excerpt))
