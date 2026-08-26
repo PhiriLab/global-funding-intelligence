@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
@@ -127,3 +128,21 @@ def load_innovation_programmes(
 
 def programme_index(programmes: list[InnovationProgramme]) -> dict[str, InnovationProgramme]:
     return {item.id: item for item in programmes}
+
+
+@lru_cache(maxsize=4)
+def _dedupe_map(path: str = "config/innovation_programmes.yaml") -> dict[str, str]:
+    try:
+        _, programmes = load_innovation_programmes(path)
+    except FileNotFoundError:
+        return {}
+    return {item.id: item.dedupe_parent for item in programmes if item.dedupe_parent}
+
+
+def dedupe_parent_for(source_id: str, path: str | Path = "config/innovation_programmes.yaml") -> str | None:
+    """Return the reviewed canonical parent source used for cross-source identity.
+
+    Unknown/non-innovation sources return ``None``. The mapping is declarative so
+    programme views cannot silently invent a parent relationship in adapter code.
+    """
+    return _dedupe_map(str(path)).get(source_id)
