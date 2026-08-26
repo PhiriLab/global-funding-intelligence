@@ -1,0 +1,84 @@
+version: 1
+verified_at: 2026-08-26
+policy:
+  primary_source_only: true
+  structured_publication_requires_source_specific_tests: true
+  unknown_stays_unknown: true
+
+sources:
+  eurostars:
+    name: Eurostars
+    automation: structured_beta
+    notes: Source-specific adapter parses authoritative Eureka Eurostars call pages. National funding rules remain call/country specific.
+
+  women_techeu:
+    name: Women TechEU
+    automation: structured_beta
+    notes: Source-specific adapter parses the authoritative Active Calls/FAQ pages and preserves the two-stage application structure.
+
+  innosuisse_startup_innovation:
+    name: Innosuisse Start-up Innovation Projects
+    automation: index_only
+
+  go_bio_next:
+    name: GO-Bio next
+    automation: index_only
+
+  aws_preseed_seedfinancing:
+    name: aws Preseed / Seedfinancing Deep Tech
+    automation: index_only
+
+  innobooster:
+    name: Innobooster
+    automation: index_only
+
+  eic_pathfinder:
+    name: EIC Pathfinder
+    automation: index_only
+    notes: Programme-specific EU view; live topics deduplicate to eu_funding_tenders.
+
+  life_programme:
+    name: LIFE Programme
+    automation: index_only
+    notes: Programme-specific EU/CINEA view; live topics deduplicate to eu_funding_tenders.
+
+  eu_cascade_funding_fstp:
+    name: EU Cascade Funding / FSTP
+    automation: index_only
+    notes: Discovery/meta route. Promoted records must resolve to the issuing consortium primary call.
+
+  zim:
+    name: ZIM
+    automation: index_only
+
+  cdti_neotec:
+    name: NEOTEC
+    automation: index_only
+
+  bpifrance_i_nov:
+    name: i-Nov Innovation Competition
+    automation: index_only
+
+  france_i_lab:
+    name: i-Lab Innovation Competition
+    automation: manual_verify
+    notes: User-supplied discovery URL is secondary; authoritative ministry/Bpifrance call required for promotion.
+
+  eit_opportunities:
+    name: EIT Opportunities
+    automation: index_only
+    notes: Mixed meta-source. Funding, accelerator, training and event types must be classified before display.
+
+  esa_bic_booster:
+    name: ESA BIC Booster Funding Opportunities
+    automation: index_only
+
+  french_tech_rise:
+    name: French Tech Rise
+    automation: manual_verify
+    notes: Ecosystem/investor-access programme, not a grant.
+
+  french_tech_2030:
+    name: French Tech 2030
+    automation: manual_verify
+    notes: Ecosystem/support programme unless a direct funding instrument is separately verified.
