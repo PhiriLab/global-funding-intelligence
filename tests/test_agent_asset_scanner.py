@@ -27,6 +27,18 @@ def test_flags_private_key_material():
     assert "private_key" in {finding.rule for finding in findings}
 
 
+def test_redacts_detected_secret_from_excerpt():
+    secret = "supersecretvalue123456"
+    findings = scan_text(
+        Path("config.env"),
+        f"api_key={secret}",
+    )
+    assert len(findings) == 1
+    assert findings[0].rule == "generic_api_key"
+    assert secret not in findings[0].excerpt
+    assert "[REDACTED]" in findings[0].excerpt
+
+
 def test_benign_agent_guidance_is_not_flagged():
     findings = scan_text(
         Path("agent.md"),
