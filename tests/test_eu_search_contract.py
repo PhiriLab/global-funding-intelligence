@@ -10,7 +10,7 @@ def test_eu_search_results_flatten_nested_metadata():
             'metadata': {
                 'identifier': ['HORIZON-TEST-01'],
                 'title': ['Test call'],
-                'status': ['31094501'],
+                'status': ['31094502'],
                 'deadlineDate': ['2026-12-01T17:00:00Z'],
                 'frameworkProgramme': ['Horizon Europe'],
             },
@@ -25,3 +25,9 @@ def test_eu_search_results_flatten_nested_metadata():
     assert opportunity.title == 'Test call'
     assert opportunity.primary_url == records[0]['url']
     assert opportunity.status.value == 'open'
+
+
+def test_eu_status_codes_map_to_forthcoming_open_closed():
+    assert normalise_eu_record({'identifier': 'A', 'status': '31094501'}).status.value == 'upcoming'
+    assert normalise_eu_record({'identifier': 'B', 'status': '31094502'}).status.value == 'open'
+    assert normalise_eu_record({'identifier': 'C', 'status': '31094503'}).status.value == 'closed'
