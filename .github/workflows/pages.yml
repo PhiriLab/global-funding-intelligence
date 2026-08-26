@@ -88,11 +88,22 @@ jobs:
           else:
               raise RuntimeError(f'live Pages verification failed: {last_error}')
           PY
+
+  live-opportunities-smoke:
+    name: live Opportunities browser smoke
+    needs: deploy
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install browser smoke dependencies
         run: |
           pip install 'playwright>=1.47,<2'
           python -m playwright install --with-deps chromium
-      - name: Verify live Opportunities in Chromium
+      - name: Verify current live Opportunities in Chromium
         env:
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          PAGE_URL: https://phirilab.github.io/global-funding-intelligence/
         run: python scripts/live_opportunities_smoke.py
