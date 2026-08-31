@@ -38,181 +38,39 @@
         <p class="eyebrow" data-i18n="hero_eyebrow">GLOBAL MAJORITY-FIRST • PRIMARY SOURCE-FIRST</p>
         <h1 data-i18n="hero_h1">Find funding opportunities with evidence, provenance and clear uncertainty.</h1>
         <p class="lead" data-i18n="hero_lead">A public funding intelligence hub for researchers, innovators, charities, universities, clinicians and community organisations. Search trusted funders, understand what has actually been verified, and go directly to the authoritative source before you invest time in a bid.</p>
-        <div class="hero-actions">
-          <a class="button primary" href="#opportunities" data-i18n="hero_cta1">Explore verified opportunities</a>
-          <a class="button" href="#discover" data-i18n="hero_cta2">Browse funding sources</a>
-        </div>
-        <div class="trust-strip" aria-label="Trust principles">
-          <span data-i18n="trust_1">Eligibility is never guessed</span>
-          <span data-i18n="trust_2">Source states are visible</span>
-          <span data-i18n="trust_3">Global Majority access is explicit</span>
-          <span data-i18n="trust_4">Primary sources are one click away</span>
-        </div>
+        <div class="hero-actions"><a class="button primary" href="#opportunities" data-i18n="hero_cta1">Explore verified opportunities</a><a class="button" href="#discover" data-i18n="hero_cta2">Browse funding sources</a></div>
+        <div class="trust-strip" aria-label="Trust principles"><span data-i18n="trust_1">Eligibility is never guessed</span><span data-i18n="trust_2">Source states are visible</span><span data-i18n="trust_3">Global Majority access is explicit</span><span data-i18n="trust_4">Primary sources are one click away</span></div>
       </div>
-      <aside class="hero-panel" aria-label="Coverage summary">
-        <div class="metric"><strong id="sourceCount">0</strong><span data-i18n="panel_tracked">tracked funders</span></div>
-        <div class="metric"><strong id="structuredCount">0</strong><span data-i18n="panel_structured">structured beta sources</span></div>
-        <div class="metric"><strong>100%</strong><span data-i18n="panel_links">primary-source links</span></div>
-        <p class="panel-note" data-i18n="panel_note">A missing field means “not verified yet” — not “no restriction”.</p>
-      </aside>
+      <aside class="hero-panel" aria-label="Coverage summary"><div class="metric"><strong id="sourceCount">0</strong><span data-i18n="panel_tracked">tracked funders</span></div><div class="metric"><strong id="structuredCount">0</strong><span data-i18n="panel_structured">structured beta sources</span></div><div class="metric"><strong>100%</strong><span data-i18n="panel_links">primary-source links</span></div><p class="panel-note" data-i18n="panel_note">A missing field means “not verified yet” — not “no restriction”.</p></aside>
     </section>
 
     <section id="opportunities" class="section opportunity-section">
-      <div class="section-head">
-        <div><p class="eyebrow" data-i18n="opp_eyebrow">VERIFIED OPPORTUNITIES</p><h2 data-i18n="opp_h2">Call-level intelligence, when the source supports it</h2></div>
-        <p data-i18n="opp_intro">Only trusted structured sources can publish call-level records here. Missing fields remain unknown, and eligibility is never inferred from unstructured source text.</p>
-      </div>
-      <div class="opportunity-toolbar" role="search" aria-label="Opportunity filters">
-        <label>Lifecycle
-          <select id="opportunityLifecycleFilter">
-            <option value="all">All lifecycle states</option>
-            <option value="closing_soon">Closing soon</option>
-            <option value="open">Open</option>
-            <option value="rolling">Rolling</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="unknown">Unknown</option>
-            <option value="closed">Closed</option>
-          </select>
-        </label>
-        <label>Search opportunities
-          <input id="opportunitySearch" type="search" placeholder="e.g. EDCTP3, mental health, Horizon" autocomplete="off" />
-        </label>
-        <div class="opportunity-summary" aria-live="polite"><strong id="opportunityCount">0</strong><span>matching opportunities</span></div>
-      </div>
-      <p id="opportunityFeedStatus" class="feed-status">Loading verified opportunity feed…</p>
-      <div id="opportunityCards" class="opportunity-grid" aria-live="polite" aria-busy="false"></div>
-      <div class="notice"><strong>Decision-support boundary:</strong> opportunity status, dates and amounts are shown only when published through a trusted structured source. Final eligibility, consortium rules and submission requirements remain authoritative at the funder’s primary call page.</div>
+      <div class="section-head"><div><p class="eyebrow" data-i18n="opp_eyebrow">VERIFIED OPPORTUNITIES</p><h2 data-i18n="opp_h2">Call-level intelligence, when the source supports it</h2></div><p data-i18n="opp_intro">Only trusted structured sources can publish call-level records here. Missing fields remain unknown, and eligibility is never inferred from unstructured source text.</p></div>
+      <div class="opportunity-toolbar" role="search" aria-label="Opportunity filters"><label>Lifecycle<select id="opportunityLifecycleFilter"><option value="all">All lifecycle states</option><option value="closing_soon">Closing soon</option><option value="open">Open</option><option value="rolling">Rolling</option><option value="upcoming">Upcoming</option><option value="unknown">Unknown</option><option value="closed">Closed</option></select></label><label>Search opportunities<input id="opportunitySearch" type="search" placeholder="e.g. EDCTP3, mental health, Horizon" autocomplete="off" /></label><div class="opportunity-summary" aria-live="polite"><strong id="opportunityCount">0</strong><span>matching opportunities</span></div></div>
+      <p id="opportunityFeedStatus" class="feed-status">Loading verified opportunity feed…</p><div id="opportunityCards" class="opportunity-grid" aria-live="polite" aria-busy="false"></div><div class="notice"><strong>Decision-support boundary:</strong> opportunity status, dates and amounts are shown only when published through a trusted structured source. Final eligibility, consortium rules and submission requirements remain authoritative at the funder’s primary call page.</div>
     </section>
 
-    <section id="discover" class="section">
-      <div class="section-head">
-        <div><p class="eyebrow">FUNDER DIRECTORY</p><h2>Start with your context</h2></div>
-        <p>Use the filters to narrow authoritative funders. Results prioritise relevance without converting incomplete web text into a false eligibility verdict.</p>
-      </div>
-      <div class="filter-grid" role="search" aria-label="Funding source filters">
-        <label>Country or region
-          <select id="regionFilter">
-            <option value="all">All regions</option><option value="Africa">Africa</option><option value="global_majority">Global Majority</option><option value="global">Global</option><option value="UK">United Kingdom</option><option value="Europe">Europe</option>
-          </select>
-        </label>
-        <label>Source state
-          <select id="stateFilter">
-            <option value="all">All source states</option><option value="structured_beta">Structured beta</option><option value="structured_beta_detail">Structured beta detail</option><option value="partial">Partial</option><option value="index_only">Index only</option><option value="manual_verify">Manual verify</option>
-          </select>
-        </label>
-        <label>Priority
-          <select id="priorityFilter">
-            <option value="all">All priorities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option>
-          </select>
-        </label>
-        <label>Search
-          <input id="searchInput" type="search" placeholder="e.g. mental health, Africa, innovation, CEPI" autocomplete="off" />
-        </label>
-      </div>
-      <div class="results-toolbar"><p><strong id="resultCount">0</strong> sources match your filters</p><button id="resetFilters" class="text-button" type="button">Reset filters</button></div>
-      <div id="cards" class="card-grid" aria-live="polite"></div>
-    </section>
+    <section id="discover" class="section"><div class="section-head"><div><p class="eyebrow">FUNDER DIRECTORY</p><h2>Start with your context</h2></div><p>Use the filters to narrow authoritative funders. Results prioritise relevance without converting incomplete web text into a false eligibility verdict.</p></div><div class="filter-grid" role="search" aria-label="Funding source filters"><label>Country or region<select id="regionFilter"><option value="all">All regions</option><option value="Africa">Africa</option><option value="global_majority">Global Majority</option><option value="global">Global</option><option value="UK">United Kingdom</option><option value="Europe">Europe</option></select></label><label>Source state<select id="stateFilter"><option value="all">All source states</option><option value="structured_beta">Structured beta</option><option value="structured_beta_detail">Structured beta detail</option><option value="partial">Partial</option><option value="index_only">Index only</option><option value="manual_verify">Manual verify</option></select></label><label>Priority<select id="priorityFilter"><option value="all">All priorities</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option></select></label><label>Search<input id="searchInput" type="search" placeholder="e.g. mental health, Africa, innovation, CEPI" autocomplete="off" /></label></div><div class="results-toolbar"><p><strong id="resultCount">0</strong> sources match your filters</p><button id="resetFilters" class="text-button" type="button">Reset filters</button></div><div id="cards" class="card-grid" aria-live="polite"></div></section>
 
-    <section id="resources" class="section resource-guide">
-      <div class="section-head">
-        <div><p class="eyebrow">GRANT RESOURCES</p><h2>What is covered — and how to use it</h2></div>
-        <p>This is more than a directory. Each resource is classified by how much of the call can currently be verified and normalised safely.</p>
-      </div>
-      <div class="resource-grid">
-        <article><h3>UK research funding</h3><p>UKRI, NIHR and Wellcome are represented with structured-beta coverage where source pages expose stable fields. Use these for research, health and care, innovation and translational funding.</p><a href="#discover" data-filter-region="UK">Show UK sources →</a></article>
-        <article><h3>European funding</h3><p>EU Funding & Tenders covers Horizon Europe and related calls. The engine prefers the European Commission’s structured route rather than brittle page scraping.</p><a href="#discover" data-filter-region="Europe">Show European sources →</a></article>
-        <article><h3>Africa & Global Majority</h3><p>Science for Africa, IDRC, WHO/TDR, Grand Challenges Canada, Global Innovation Fund and related sources are surfaced with explicit access and source-state labels.</p><a href="#discover" data-filter-region="global_majority">Show Global Majority sources →</a></article>
-        <article><h3>Global health & humanitarian</h3><p>CEPI, Gavi, Elrha, Fogarty and NIH are tracked for global-health, preparedness, implementation, humanitarian and training opportunities.</p><button class="inline-action" type="button" data-search="global health">Show global-health sources →</button></article>
-        <article><h3>Philanthropy</h3><p>Wellcome, Gates, Novo Nordisk Foundation and major challenge networks are included, but invitation-only and open-call routes are deliberately kept distinct.</p><button class="inline-action" type="button" data-search="foundation">Show philanthropic sources →</button></article>
-        <article><h3>Life sciences & industry</h3><p>Industry funding and investigator-sponsored-study portals are treated conservatively. A corporate research page is not automatically presented as an open grant.</p><button class="inline-action" type="button" data-search="supported studies">Show industry sources →</button></article>
-      </div>
-      <div class="notice"><strong>Important:</strong> this service supports discovery and decision-making; it does not replace the funder’s eligibility rules, guidance notes or application portal.</div>
-    </section>
+    <section id="resources" class="section resource-guide"><div class="section-head"><div><p class="eyebrow">GRANT RESOURCES</p><h2>What is covered — and how to use it</h2></div><p>This is more than a directory. Each resource is classified by how much of the call can currently be verified and normalised safely.</p></div><div class="resource-grid"><article><h3>UK research funding</h3><p>UKRI, NIHR and Wellcome are represented with structured-beta coverage where source pages expose stable fields. Use these for research, health and care, innovation and translational funding.</p><a href="#discover" data-filter-region="UK">Show UK sources →</a></article><article><h3>European funding</h3><p>EU Funding & Tenders covers Horizon Europe and related calls. The engine prefers the European Commission’s structured route rather than brittle page scraping.</p><a href="#discover" data-filter-region="Europe">Show European sources →</a></article><article><h3>Africa & Global Majority</h3><p>Science for Africa, IDRC, WHO/TDR, Grand Challenges Canada, Global Innovation Fund and related sources are surfaced with explicit access and source-state labels.</p><a href="#discover" data-filter-region="global_majority">Show Global Majority sources →</a></article><article><h3>Global health & humanitarian</h3><p>CEPI, Gavi, Elrha, Fogarty and NIH are tracked for global-health, preparedness, implementation, humanitarian and training opportunities.</p><button class="inline-action" type="button" data-search="global health">Show global-health sources →</button></article><article><h3>Philanthropy</h3><p>Wellcome, Gates, Novo Nordisk Foundation and major challenge networks are included, but invitation-only and open-call routes are deliberately kept distinct.</p><button class="inline-action" type="button" data-search="foundation">Show philanthropic sources →</button></article><article><h3>Life sciences & industry</h3><p>Industry funding and investigator-sponsored-study portals are treated conservatively. A corporate research page is not automatically presented as an open grant.</p><button class="inline-action" type="button" data-search="supported studies">Show industry sources →</button></article></div><div class="notice"><strong>Important:</strong> this service supports discovery and decision-making; it does not replace the funder’s eligibility rules, guidance notes or application portal.</div></section>
 
-    <section id="sources" class="section muted">
-      <div class="section-head"><div><p class="eyebrow">SOURCE STATES</p><h2>Know what “verified” means</h2></div><p>Every source carries a visible state badge so you can distinguish structured records from link-only discovery.</p></div>
-      <div class="state-grid">
-        <article><span class="badge structured_beta">structured_beta</span><h3>Structured beta</h3><p>Source-specific extraction is available. Eligibility still requires source verification.</p></article>
-        <article><span class="badge structured_beta_detail">structured_beta_detail</span><h3>Detail-page beta</h3><p>Verified detail pages can be structured, but the index may not reflect all currently open calls.</p></article>
-        <article><span class="badge partial">partial</span><h3>Partial</h3><p>Authoritative source tracked, but call-level normalization is incomplete.</p></article>
-        <article><span class="badge index_only">index_only</span><h3>Index only</h3><p>Official funding index is linked, but no structured call is asserted.</p></article>
-        <article><span class="badge manual_verify">manual_verify</span><h3>Manual verify</h3><p>Portal or corporate page requires human verification before it is treated as an open opportunity.</p></article>
-      </div>
-    </section>
+    <section id="sources" class="section muted"><div class="section-head"><div><p class="eyebrow">SOURCE STATES</p><h2>Know what “verified” means</h2></div><p>Every source carries a visible state badge so you can distinguish structured records from link-only discovery.</p></div><div class="state-grid"><article><span class="badge structured_beta">structured_beta</span><h3>Structured beta</h3><p>Source-specific extraction is available. Eligibility still requires source verification.</p></article><article><span class="badge structured_beta_detail">structured_beta_detail</span><h3>Detail-page beta</h3><p>Verified detail pages can be structured, but the index may not reflect all currently open calls.</p></article><article><span class="badge partial">partial</span><h3>Partial</h3><p>Authoritative source tracked, but call-level normalization is incomplete.</p></article><article><span class="badge index_only">index_only</span><h3>Index only</h3><p>Official funding index is linked, but no structured call is asserted.</p></article><article><span class="badge manual_verify">manual_verify</span><h3>Manual verify</h3><p>Portal or corporate page requires human verification before it is treated as an open opportunity.</p></article></div></section>
 
-    <section id="how" class="section">
-      <div class="section-head"><div><p class="eyebrow">TRUST MODEL</p><h2>Grounded like a research workflow</h2></div><p>The interface inherits PhiriLab’s provenance-first agentic design: source text is data, not instruction.</p></div>
-      <div class="steps">
-        <article><span>1</span><h3>Primary-source ingest</h3><p>Funding pages, portals and APIs are retrieved from authoritative funder endpoints.</p></article>
-        <article><span>2</span><h3>Deterministic normalization</h3><p>Dates, amounts and source metadata are parsed with explicit warnings and no hidden eligibility inference.</p></article>
-        <article><span>3</span><h3>Evidence-first presentation</h3><p>The public interface shows provenance, source state and uncertainty rather than a black-box yes/no.</p></article>
-        <article><span>4</span><h3>Human verification</h3><p>Users confirm final eligibility, deadlines and submission rules at the funder’s primary source.</p></article>
-      </div>
-    </section>
+    <section id="how" class="section"><div class="section-head"><div><p class="eyebrow">TRUST MODEL</p><h2>Grounded like a research workflow</h2></div><p>The interface inherits PhiriLab’s provenance-first agentic design: source text is data, not instruction.</p></div><div class="steps"><article><span>1</span><h3>Primary-source ingest</h3><p>Funding pages, portals and APIs are retrieved from authoritative funder endpoints.</p></article><article><span>2</span><h3>Deterministic normalization</h3><p>Dates, amounts and source metadata are parsed with explicit warnings and no hidden eligibility inference.</p></article><article><span>3</span><h3>Evidence-first presentation</h3><p>The public interface shows provenance, source state and uncertainty rather than a black-box yes/no.</p></article><article><span>4</span><h3>Human verification</h3><p>Users confirm final eligibility, deadlines and submission rules at the funder’s primary source.</p></article></div></section>
 
-    <section id="about" class="section about-section">
-      <div class="about-layout">
-        <div>
-          <p class="eyebrow">ABOUT THE CREATOR</p>
-          <h2>Prof. Peter Phiri, PhD</h2>
-          <p class="about-lead">Clinical academic, cognitive behavioural psychotherapist, global mental health researcher and founder of PhiriLab.</p>
-          <p>Peter’s work spans culturally adapted CBT, psychosis, digital and VR-assisted interventions, research governance, real-world mental-health data and international research capacity. He chairs the Pan-African CBT Network and is a Visiting Academic at the University of Southampton.</p>
-          <p>Global Funding Intelligence grew from a practical problem: excellent researchers and community innovators—particularly across Global Majority settings—often spend too much time searching fragmented funding sites, interpreting opaque eligibility rules and discovering opportunities too late. This project aims to reduce that friction while preserving the funder as the final authority.</p>
-          <div class="hero-actions"><a class="button primary" href="https://github.com/PhiriLab" target="_blank" rel="noreferrer">Explore PhiriLab</a><a class="button" href="#ecosystem">See related projects</a></div>
-        </div>
-        <aside class="about-card">
-          <h3>Why this resource exists</h3>
-          <ul><li>Improve access to funding intelligence globally.</li><li>Make Global Majority eligibility visible rather than buried.</li><li>Reduce wasted effort on strategically weak or ineligible bids.</li><li>Keep evidence, provenance and uncertainty visible.</li><li>Connect researchers to open PhiriLab tools and research resources.</li></ul>
-        </aside>
-      </div>
-    </section>
+    <section id="about" class="section about-section"><div class="about-layout"><div><p class="eyebrow">ABOUT THE CREATOR</p><h2>Prof. Peter Phiri, PhD</h2><p class="about-lead">Clinical academic, cognitive behavioural psychotherapist, global mental health researcher and founder of PhiriLab.</p><p>Peter’s work spans culturally adapted CBT, psychosis, digital and VR-assisted interventions, research governance, real-world mental-health data and international research capacity. He chairs the Pan-African CBT Network and is a Visiting Academic at the University of Southampton.</p><p>Global Funding Intelligence grew from a practical problem: excellent researchers and community innovators—particularly across Global Majority settings—often spend too much time searching fragmented funding sites, interpreting opaque eligibility rules and discovering opportunities too late. This project aims to reduce that friction while preserving the funder as the final authority.</p><div class="hero-actions"><a class="button primary" href="https://github.com/PhiriLab" target="_blank" rel="noreferrer">Explore PhiriLab</a><a class="button" href="#ecosystem">See related projects</a></div></div><aside class="about-card"><h3>Why this resource exists</h3><ul><li>Improve access to funding intelligence globally.</li><li>Make Global Majority eligibility visible rather than buried.</li><li>Reduce wasted effort on strategically weak or ineligible bids.</li><li>Keep evidence, provenance and uncertainty visible.</li><li>Connect researchers to open PhiriLab tools and research resources.</li></ul></aside></div></section>
 
-    <section id="partnerships" class="section muted">
-      <div class="section-head">
-        <div><p class="eyebrow">PARTNERSHIPS & SUSTAINABILITY</p><h2>Partner with or support Global Funding Intelligence</h2></div>
-        <p>Funders, research organisations, foundations, technology partners and sponsors can support wider source coverage, infrastructure, accessibility and Global Majority reach.</p>
-      </div>
-      <div class="about-layout">
-        <div>
-          <p class="about-lead">Global Funding Intelligence is an independent public-interest PhiriLab initiative.</p>
-          <p>We welcome enquiries from organisations that want their funding opportunities represented accurately, institutions seeking research collaboration, technology or data partners able to strengthen the infrastructure, and sponsors interested in supporting continued development and equitable global access.</p>
-          <div class="hero-actions">
-            <a class="button primary" href="https://github.com/PhiriLab/global-funding-intelligence/issues/new?template=partnership-sponsorship.yml" target="_blank" rel="noreferrer">Partnership & sponsorship enquiry</a>
-            <a class="button" href="https://github.com/PhiriLab/global-funding-intelligence" target="_blank" rel="noreferrer">Review the open project</a>
-          </div>
-        </div>
-        <aside class="about-card">
-          <h3>Independence safeguard</h3>
-          <p>Financial, technical or institutional support does not confer influence over opportunity verification, eligibility assessment, source-state decisions or ranking.</p>
-          <ul><li>Verification remains evidence-led.</li><li>Funders remain the final authority for their calls.</li><li>Sponsored relationships should be disclosed transparently.</li><li>Unknown eligibility remains unknown rather than being inferred.</li></ul>
-        </aside>
-      </div>
-    </section>
+    <section id="partnerships" class="section muted"><div class="section-head"><div><p class="eyebrow">PARTNERSHIPS & SUSTAINABILITY</p><h2>Partner with or support Global Funding Intelligence</h2></div><p>Funders, research organisations, foundations, technology partners and sponsors can support wider source coverage, infrastructure, accessibility and Global Majority reach.</p></div><div class="about-layout"><div><p class="about-lead">Global Funding Intelligence is an independent public-interest PhiriLab initiative.</p><p>We welcome enquiries from organisations that want their funding opportunities represented accurately, institutions seeking research collaboration, technology or data partners able to strengthen the infrastructure, and sponsors interested in supporting continued development and equitable global access.</p><div class="hero-actions"><a class="button primary" href="https://github.com/PhiriLab/global-funding-intelligence/issues/new?template=partnership-sponsorship.yml" target="_blank" rel="noreferrer">Partnership & sponsorship enquiry</a><a class="button" href="https://github.com/PhiriLab/global-funding-intelligence" target="_blank" rel="noreferrer">Review the open project</a></div></div><aside class="about-card"><h3>Independence safeguard</h3><p>Financial, technical or institutional support does not confer influence over opportunity verification, eligibility assessment, source-state decisions or ranking.</p><ul><li>Verification remains evidence-led.</li><li>Funders remain the final authority for their calls.</li><li>Sponsored relationships should be disclosed transparently.</li><li>Unknown eligibility remains unknown rather than being inferred.</li></ul></aside></div></section>
 
-    <section id="ecosystem" class="section ecosystem">
-      <div class="section-head"><div><p class="eyebrow">PHIRILAB ECOSYSTEM</p><h2>Explore related public work</h2></div><p>The funding hub is also a gateway into the wider research, tools and open-source ecosystem.</p></div>
-      <div class="ecosystem-grid">
-        <a href="https://github.com/PhiriLab/Source-to-grounded-Skill" target="_blank" rel="noreferrer"><h3>Source-to-Grounded-Skill</h3><p>Provenance-preserving agent skills with security gates and human review.</p></a>
-        <a href="https://github.com/PhiriLab/gmh-research-kit" target="_blank" rel="noreferrer"><h3>GMH Research Kit</h3><p>Open tooling for global mental health research workflows.</p></a>
-        <a href="https://github.com/PhiriLab/research-kit" target="_blank" rel="noreferrer"><h3>Research Kit</h3><p>Reusable research infrastructure and public utilities.</p></a>
-        <a href="https://github.com/PhiriLab" target="_blank" rel="noreferrer"><h3>PhiriLab on GitHub</h3><p>Browse public projects, tools and experiments.</p></a>
-      </div>
-    </section>
+    <section id="ecosystem" class="section ecosystem"><div class="section-head"><div><p class="eyebrow">PHIRILAB ECOSYSTEM</p><h2>Explore related public work</h2></div><p>The funding hub is also a gateway into the wider research, tools and open-source ecosystem.</p></div><div class="ecosystem-grid"><a href="https://github.com/PhiriLab/Source-to-grounded-Skill" target="_blank" rel="noreferrer"><h3>Source-to-Grounded-Skill</h3><p>Provenance-preserving agent skills with security gates and human review.</p></a><a href="https://github.com/PhiriLab/gmh-research-kit" target="_blank" rel="noreferrer"><h3>GMH Research Kit</h3><p>Open tooling for global mental health research workflows.</p></a><a href="https://github.com/PhiriLab/research-kit" target="_blank" rel="noreferrer"><h3>Research Kit</h3><p>Reusable research infrastructure and public utilities.</p></a><a href="https://github.com/PhiriLab" target="_blank" rel="noreferrer"><h3>PhiriLab on GitHub</h3><p>Browse public projects, tools and experiments.</p></a></div></section>
 
-    <section class="cta">
-      <div><p class="eyebrow">FOR COLLEAGUES & COMMUNITIES</p><h2>Use it, share it, improve it.</h2><p>Built to reduce the friction between discovering a call and understanding whether it deserves your time.</p></div>
-      <div class="hero-actions"><a class="button primary" href="#opportunities">Browse opportunities</a><a class="button" href="https://github.com/PhiriLab/global-funding-intelligence/issues/new" target="_blank" rel="noreferrer">Suggest a funder</a></div>
-    </section>
+    <section class="cta"><div><p class="eyebrow">FOR COLLEAGUES & COMMUNITIES</p><h2>Use it, share it, improve it.</h2><p>Built to reduce the friction between discovering a call and understanding whether it deserves your time.</p></div><div class="hero-actions"><a class="button primary" href="#opportunities">Browse opportunities</a><a class="button" href="https://github.com/PhiriLab/global-funding-intelligence/issues/new" target="_blank" rel="noreferrer">Suggest a funder</a></div></section>
   </main>
-
-  <dialog id="resourceDialog" class="resource-dialog" aria-labelledby="dialogTitle">
-    <form method="dialog"><button class="dialog-close" aria-label="Close resource details">×</button></form>
-    <div id="dialogContent"></div>
-  </dialog>
-
+  <dialog id="resourceDialog" class="resource-dialog" aria-labelledby="dialogTitle"><form method="dialog"><button class="dialog-close" aria-label="Close resource details">×</button></form><div id="dialogContent"></div></dialog>
   <footer><span>Global Funding Intelligence • PhiriLab</span><span><a href="#partnerships" data-i18n="footer_partnerships">Partnerships & sponsorship</a> • <span data-i18n="footer_eligibility">Eligibility: not determined — verify at source.</span></span></footer>
   <script src="i18n.js"></script>
   <script src="app.js"></script>
+  <script src="telemetry-v2.js"></script>
   <script src="opportunities.js"></script>
   <script src="application-journey.js"></script>
   <script src="application-readiness.js"></script>
