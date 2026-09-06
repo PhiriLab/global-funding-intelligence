@@ -86,10 +86,22 @@
     return url.includes(TELEMETRY_PATH) && String(init?.method || 'GET').toUpperCase() === 'POST';
   }
 
-  async function sendSessionStart(url, headers) {
+  // Exactly one session_start per session. The guard must be claimed SYNCHRONOUSLY:
+  // page load fires several telemetry POSTs back-to-back, so a check-then-await-then-mark
+  // sequence lets every concurrent caller past the guard and emits a duplicate per session
+  // (observed at exactly 2x, inflating session counts). sessionStartPromise dedupes within
+  // a page load and also covers private mode, where sessionStorage throws.
+  let sessionStartPromise = null;
+  function sendSessionStart(url, headers) {
+    if (sessionStartPromise) return sessionStartPromise;
     let started = false;
     try { started = sessionStorage.getItem(SESSION_STARTED_KEY) === '1'; } catch (_) {}
-    if (started) return;
+    if (started) {
+      sessionStartPromise = Promise.resolve();
+      return sessionStartPromise;
+    }
+    // Claim before awaiting so a concurrent caller cannot race past this point.
+    try { sessionStorage.setItem(SESSION_STARTED_KEY, '1'); } catch (_) {}
     const body = enrich({
       event_name: 'session_start',
       page: 'global-funding-intelligence',
@@ -98,10 +110,9 @@
       viewport: window.innerWidth < 680 ? 'mobile' : window.innerWidth < 1080 ? 'tablet' : 'desktop',
       properties: {}
     });
-    try {
-      await nativeFetch(url, {method:'POST', headers, body:JSON.stringify(body), keepalive:true});
-      try { sessionStorage.setItem(SESSION_STARTED_KEY, '1'); } catch (_) {}
-    } catch (_) {}
+    sessionStartPromise = nativeFetch(url, {method:'POST', headers, body:JSON.stringify(body), keepalive:true})
+      .catch(() => {});
+    return sessionStartPromise;
   }
 
   window.fetch = async function(input, init = {}) {
