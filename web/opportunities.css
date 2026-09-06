@@ -37,3 +37,5 @@
 .pulse-comment{margin-top:16px}.pulse-actions{display:flex;align-items:center;gap:16px;margin-top:18px}.pulse-actions p{margin:0;color:var(--muted);font-size:.78rem}.pulse-actions button:disabled{opacity:.6;cursor:wait}
 @media(max-width:1080px){.opportunity-toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.opportunity-summary{justify-content:flex-start}.opportunity-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.profile-matcher-head{grid-template-columns:1fr}.pulse-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:680px){.opportunity-toolbar,.opportunity-grid,.pulse-grid{grid-template-columns:1fr}.opportunity-summary{justify-content:flex-start}.opportunity-facts div{grid-template-columns:1fr}.opportunity-card{min-height:0}.matcher-row{align-items:flex-start;flex-direction:column}.matcher-row-actions{width:100%;justify-content:space-between}.profile-matcher-controls{align-items:flex-start;flex-direction:column}.pulse-actions{align-items:flex-start;flex-direction:column}}
+
+.hidden-note{display:block;font-size:12px;color:var(--muted,#5b6b78);margin-top:4px}
