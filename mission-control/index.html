@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#02070c" />
+  <title>PhiriLab Mission Control</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <canvas id="space" aria-hidden="true"></canvas>
+  <div class="scanlines" aria-hidden="true"></div>
+  <main class="shell" id="app">
+    <header class="topbar glass">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div><strong>PHIRILAB</strong><span>MISSION CONTROL</span></div>
+      </div>
+      <div class="command" role="search">
+        <span class="prompt">›</span>
+        <input id="commandInput" autocomplete="off" placeholder="Ask Mission Control… e.g. ‘show stalled’" aria-label="Mission Control command" />
+        <button id="voiceBtn" class="icon-btn" aria-label="Voice command" title="Voice command">◉</button>
+      </div>
+      <div class="statusline">
+        <span id="livePulse" class="live-dot"></span><span id="liveState">LIVE</span>
+        <time id="clock"></time>
+      </div>
+    </header>
+
+    <section class="overview-grid">
+      <aside class="rail glass" aria-label="Portfolio health">
+        <div class="kicker">PORTFOLIO SIGNAL</div>
+        <div class="health-orb"><div id="healthScore">—</div><span>READINESS</span></div>
+        <div class="metric-grid" id="metrics"></div>
+        <div class="legend">
+          <span><i class="sig green"></i> operational</span>
+          <span><i class="sig amber"></i> attention</span>
+          <span><i class="sig red"></i> blocked</span>
+          <span><i class="sig cyan"></i> verified</span>
+        </div>
+      </aside>
+
+      <section class="viewport glass" aria-label="3D portfolio map">
+        <div class="hud-title"><span>SPATIAL PORTFOLIO</span><small>drag to rotate · scroll to zoom · click a node</small></div>
+        <div id="scene" class="scene" tabindex="0" aria-label="Interactive spatial portfolio">
+          <div class="scene-core"><div class="core-label">PHIRILAB</div></div>
+          <div id="orbitLayer" class="orbit-layer"></div>
+        </div>
+        <div class="scene-controls">
+          <button data-view="all">ALL</button>
+          <button data-view="release">RELEASE</button>
+          <button data-view="stalled">STALLED</button>
+          <button data-view="live">LIVE</button>
+          <button id="resetView">RESET</button>
+        </div>
+      </section>
+
+      <aside class="intel glass" aria-live="polite">
+        <div class="kicker">DECISION INTELLIGENCE</div>
+        <div id="intelPanel" class="intel-panel">
+          <h2>Portfolio overview</h2>
+          <p>Select a node or issue a command to inspect evidence, blockers, milestone, ownership and confidence.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="lower-grid">
+      <section class="glass timeline-panel">
+        <div class="section-head"><span>EVENT STREAM</span><button id="pauseEvents">PAUSE</button></div>
+        <div id="eventStream" class="event-stream"></div>
+      </section>
+      <section class="glass telemetry-panel">
+        <div class="section-head"><span>TELEMETRY & CONTROL PLANE</span><span id="dataAge" class="age"></span></div>
+        <div id="telemetryBars" class="telemetry-bars"></div>
+      </section>
+      <section class="glass action-panel">
+        <div class="section-head"><span>DIRECTOR ACTION QUEUE</span><span class="badge">P0 FIRST</span></div>
+        <div id="actionQueue" class="action-queue"></div>
+      </section>
+    </section>
+
+    <footer>
+      <span>VERIFIED / INFERRED / UNKNOWN evidence model</span>
+      <span id="sourceStatus">Loading evidence…</span>
+      <span>no credentials stored client-side</span>
+    </footer>
+  </main>
+  <script src="./app.js" defer></script>
+</body>
+</html>

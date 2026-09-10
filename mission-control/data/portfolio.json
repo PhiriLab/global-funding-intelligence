@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-09-09T18:51:00+01:00",
+  "portfolio_health": "AMBER",
+  "health_score": 68,
+  "sources": ["Google Drive CEO Control Dashboard", "GitHub repository evidence", "Founder-confirmed Stillpoint launch"],
+  "metrics": {"live": 2, "stalled": 3, "attention": 4, "repos": 11},
+  "projects": [
+    {"id":"stillpoint","name":"Stillpoint","type":"release","state":"green","status":"LIVE · App Store","readiness":100,"owner":"R&I / Product","milestone":"Post-launch assurance and growth telemetry","blocker":"None verified","evidence":"VERIFIED","confidence":0.99,"source":"Founder-confirmed launch; dashboard record is stale","live":true},
+    {"id":"paacs","name":"PAACS","type":"release","state":"red","status":"STALLED · telephony","readiness":58,"owner":"Claude Code R&I","milestone":"Operational PAACSTelephonyGateway + real diverted incoming-call test","blocker":"No verified production inbound telephony path","evidence":"VERIFIED","confidence":0.96,"source":"Drive release command + current portfolio control evidence"},
+    {"id":"app3","name":"Xcode App 3","type":"release","state":"red","status":"STALLED · identity","readiness":18,"owner":"Claude Code R&I","milestone":"Enumerate product name, bundle ID, build, signing and ASC state","blocker":"Identity and release state unresolved","evidence":"VERIFIED","confidence":0.97,"source":"CEO Control Dashboard / Release Queue"},
+    {"id":"app4","name":"Xcode App 4","type":"release","state":"red","status":"STALLED · identity","readiness":18,"owner":"Claude Code R&I","milestone":"Enumerate product name, bundle ID, build, signing and ASC state","blocker":"Identity and release state unresolved","evidence":"VERIFIED","confidence":0.97,"source":"CEO Control Dashboard / Release Queue"},
+    {"id":"gfi","name":"GFI","type":"live","state":"green","status":"LIVE · telemetry repaired","readiness":88,"owner":"Joint R&I","milestone":"Sponsor-grade post-fix telemetry baseline","blocker":"Historical pre-fix interval not clean for sponsor claims","evidence":"VERIFIED","confidence":0.98,"source":"GitHub 0c433845 · 174 tests"},
+    {"id":"observatory","name":"Research Observatory","type":"live","state":"green","status":"OPERATIONAL","readiness":91,"owner":"Joint R&I","milestone":"Maintain cadence; exploit PXIS 1.0","blocker":"Control dashboard state lags operational evidence","evidence":"VERIFIED","confidence":0.96,"source":"Recent GitHub digest cadence"},
+    {"id":"emunah","name":"Emunah Intelligence","type":"portfolio","state":"amber","status":"ACTIVE · milestone stale","readiness":47,"owner":"R&I","milestone":"Define next deployable invariant-backed milestone","blocker":"No recently verified deployment milestone","evidence":"INFERRED","confidence":0.76,"source":"Portfolio register + repository existence"},
+    {"id":"researchkit","name":"Research Kit","type":"portfolio","state":"amber","status":"CONSOLIDATE?","readiness":38,"owner":"Strategy","milestone":"Resolve overlap with GMH Research Kit","blocker":"Potential duplicate product surface","evidence":"VERIFIED","confidence":0.88,"source":"Portfolio governance review"},
+    {"id":"gmhkit","name":"GMH Research Kit","type":"portfolio","state":"amber","status":"CONSOLIDATE?","readiness":42,"owner":"Strategy","milestone":"Consolidation decision and branch governance review","blocker":"Overlap + Claude-named default branch","evidence":"VERIFIED","confidence":0.88,"source":"GitHub estate review"},
+    {"id":"articleb","name":"Article B-role Generator","type":"portfolio","state":"amber","status":"DEPLOYABILITY UNKNOWN","readiness":32,"owner":"Strategy","milestone":"Release / consolidate / park decision","blocker":"No recent deployable evidence; branch governance review","evidence":"VERIFIED","confidence":0.87,"source":"GitHub estate review"},
+    {"id":"fluffy","name":"fluffy-octo-memory","type":"portfolio","state":"red","status":"PARK CANDIDATE","readiness":2,"owner":"Strategy","milestone":"Park unless current product case is evidenced","blocker":"Empty private repository; no deployable output","evidence":"VERIFIED","confidence":0.99,"source":"GitHub repository size 0"}
+  ],
+  "telemetry": [
+    {"name":"Stillpoint product telemetry","value":35,"freshness":"stale","detail":"Control registry still reflects pre-launch state"},
+    {"name":"GFI telemetry integrity","value":88,"freshness":"fresh","detail":"Entry-event constraint repaired; post-fix baseline clean"},
+    {"name":"GitHub activity signal","value":72,"freshness":"stale","detail":"Executive registry timestamp lags repository activity"},
+    {"name":"PAACS runtime telemetry","value":12,"freshness":"stale","detail":"Not live until production telephony path exists"},
+    {"name":"Research Observatory cadence","value":94,"freshness":"fresh","detail":"Continuous digest output"}
+  ],
+  "actions": [
+    {"priority":"P0","owner":"Claude","text":"PAACS telephony bridge to live-call readiness"},
+    {"priority":"P0","owner":"Claude","text":"Enumerate and release-scope Xcode Apps 3 + 4"},
+    {"priority":"P0","owner":"ChatGPT","text":"Replace stale CEO control states with evidence-backed lifecycle states"},
+    {"priority":"P1","owner":"Product","text":"Wire Stillpoint post-launch funnel: install → engage → unlock → retain"},
+    {"priority":"P1","owner":"Strategy","text":"Consolidate / Park inactive and overlapping repositories"}
+  ],
+  "events": [
+    {"time":"NOW","kind":"cyan","text":"Mission Control prototype generated from current verified portfolio state."},
+    {"time":"09 SEP","kind":"amber","text":"Executive control plane remains materially staler than operational evidence."},
+    {"time":"02 SEP","kind":"green","text":"GFI telemetry-v2 entry event loss fixed at commit 0c433845; 174 tests passing."},
+    {"time":"LIVE","kind":"green","text":"Stillpoint confirmed live on Apple App Store; post-launch phase active."}
+  ]
+}
