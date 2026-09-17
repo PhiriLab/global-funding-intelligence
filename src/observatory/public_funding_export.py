@@ -18,6 +18,7 @@ class SourceState(str, Enum):
 
 
 DEFAULT_SOURCE_REGISTRY = Path("config/funder_ingestion.yaml")
+INNOVATION_SOURCE_REGISTRY = Path("config/innovation_ingestion.yaml")
 STRUCTURED_STATES = {SourceState.structured_beta, SourceState.structured_beta_detail}
 
 
@@ -38,19 +39,31 @@ class PublicFundingRecord(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
-def load_source_state_registry(path: str | Path = DEFAULT_SOURCE_REGISTRY) -> dict[str, SourceState]:
-    """Load trusted publication states from the reviewed ingestion manifest.
+def _registry_paths(path: str | Path) -> tuple[Path, ...]:
+    requested = Path(path)
+    if requested == DEFAULT_SOURCE_REGISTRY and INNOVATION_SOURCE_REGISTRY.exists():
+        return DEFAULT_SOURCE_REGISTRY, INNOVATION_SOURCE_REGISTRY
+    return (requested,)
 
-    Publication state is configuration, not extracted/caller-supplied data. Unknown
-    sources and invalid states fail closed so they cannot be promoted accidentally.
+
+def load_source_state_registry(path: str | Path = DEFAULT_SOURCE_REGISTRY) -> dict[str, SourceState]:
+    """Load trusted publication states from reviewed ingestion manifests.
+
+    The legacy/main manifest remains the default system of record. When the default
+    registry is used, the separately reviewed innovation registry is merged in.
+    Custom registry paths used by tests/tools remain isolated. Duplicate source ids
+    fail closed so a secondary manifest cannot silently override an existing source.
     """
-    raw = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
     registry: dict[str, SourceState] = {}
-    for source_id, item in (raw.get("sources") or {}).items():
-        try:
-            registry[source_id] = SourceState(item["automation"])
-        except (KeyError, ValueError, TypeError) as exc:
-            raise ValueError(f"invalid or missing automation state for source: {source_id}") from exc
+    for registry_path in _registry_paths(path):
+        raw = yaml.safe_load(registry_path.read_text(encoding="utf-8")) or {}
+        for source_id, item in (raw.get("sources") or {}).items():
+            if source_id in registry:
+                raise ValueError(f"duplicate source id across trusted ingestion registries: {source_id}")
+            try:
+                registry[source_id] = SourceState(item["automation"])
+            except (KeyError, ValueError, TypeError) as exc:
+                raise ValueError(f"invalid or missing automation state for source: {source_id}") from exc
     return registry
 
 

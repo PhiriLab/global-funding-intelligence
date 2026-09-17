@@ -17,6 +17,12 @@ from .multi_source_public_feed import (
     source_health_from_collection,
 )
 from .public_opportunity_feed import PublicOpportunityFeed, build_public_feed
+from .sources.european_innovation import (
+    collect_eurostars_opportunities,
+    collect_innobooster_opportunities,
+    collect_innosuisse_startup_opportunities,
+    collect_women_techeu_opportunities,
+)
 
 
 def _opportunity_from_public(item) -> Opportunity:
@@ -71,6 +77,49 @@ async def collect_eu(*, generated_at: datetime, page_size: int = 100) -> SourceC
     )
 
 
+async def _collect_innovation(source_id: str, loader) -> SourceCollectionResult:
+    try:
+        opportunities = await loader()
+    except Exception as exc:
+        return SourceCollectionResult(
+            source_id,
+            (),
+            0,
+            0,
+            (f"discovery failed: {type(exc).__name__}: {exc}",),
+        )
+    return SourceCollectionResult(
+        source_id,
+        opportunities,
+        len(opportunities),
+        len(opportunities),
+    )
+
+
+async def collect_eurostars(*, limit: int = 5, generated_at: datetime) -> SourceCollectionResult:
+    async def loader():
+        return await collect_eurostars_opportunities(limit=limit, now=generated_at)
+    return await _collect_innovation("eurostars", loader)
+
+
+async def collect_women_techeu(*, generated_at: datetime) -> SourceCollectionResult:
+    async def loader():
+        return await collect_women_techeu_opportunities(now=generated_at)
+    return await _collect_innovation("women_techeu", loader)
+
+
+async def collect_innosuisse(*, generated_at: datetime) -> SourceCollectionResult:
+    async def loader():
+        return await collect_innosuisse_startup_opportunities(now=generated_at)
+    return await _collect_innovation("innosuisse_startup_innovation", loader)
+
+
+async def collect_innobooster(*, generated_at: datetime) -> SourceCollectionResult:
+    async def loader():
+        return await collect_innobooster_opportunities(now=generated_at)
+    return await _collect_innovation("innobooster", loader)
+
+
 async def fetch_resilient_multi_source_public_feed(
     *,
     generated_at: datetime | None = None,
@@ -87,6 +136,10 @@ async def fetch_resilient_multi_source_public_feed(
         collect_idrc(limit=html_source_limit),
         collect_grand_challenges_canada_watch(),
         collect_fogarty(limit=html_source_limit),
+        collect_eurostars(limit=min(html_source_limit, 5), generated_at=generated_at),
+        collect_women_techeu(generated_at=generated_at),
+        collect_innosuisse(generated_at=generated_at),
+        collect_innobooster(generated_at=generated_at),
     )
     combined: list[Opportunity] = []
     for result in results:
