@@ -45,6 +45,7 @@ const opportunityEls = {
   status: statusNode,
   sourceHealth: sourceHealthNode,
   filter: document.getElementById('opportunityLifecycleFilter'),
+  hiddenNote: document.getElementById('opportunityHiddenNote'),
   search: document.getElementById('opportunitySearch'),
   country: document.getElementById('opportunityCountry'),
   organisation: document.getElementById('opportunityOrganisation'),
@@ -157,16 +158,31 @@ function populateOrganisationOptions() {
   if ([...opportunityEls.organisation.options].some(option => option.value === current)) opportunityEls.organisation.value = current;
 }
 
+// A call whose verified deadline has passed is not open, whatever its label says:
+// a stale 'open' lifecycle must not be presented as an actionable grant.
+function opportunityExpired(item) {
+  if (!item.closing_at) return false;
+  const closes = new Date(item.closing_at);
+  return !Number.isNaN(closes.getTime()) && closes < new Date();
+}
+
 function renderOpportunities() {
   if (!opportunityEls.grid) return;
-  const lifecycle = opportunityEls.filter?.value || 'all';
+  const lifecycle = opportunityEls.filter?.value || 'actionable';
   const q = (opportunityEls.search?.value || '').trim().toLowerCase();
   const country = (opportunityEls.country?.value || '').trim().toUpperCase();
   const organisation = opportunityEls.organisation?.value || 'all';
   const gmRoute = opportunityEls.gmRoute?.value || 'all';
   const evidence = opportunityEls.evidence?.value || 'include_unknown';
   const rows = opportunityFeed.filter(item => {
-    if (lifecycle !== 'all' && item.lifecycle !== lifecycle) return false;
+    // Default view shows only what can still be applied for. 'closed' and 'all' are
+    // explicit opt-ins, so closed calls stay reachable rather than being erased.
+    if (lifecycle === 'actionable') {
+      if (item.lifecycle === 'closed' || opportunityExpired(item)) return false;
+    } else if (lifecycle !== 'all') {
+      if (item.lifecycle !== lifecycle) return false;
+      if (lifecycle !== 'closed' && opportunityExpired(item)) return false;
+    }
     if (q && !`${item.title} ${item.funder} ${item.programme || ''} ${item.source_id} ${item.lifecycle} ${(item.applicant_types || []).join(' ')}`.toLowerCase().includes(q)) return false;
     if (gmRoute !== 'all' && (item.global_majority_access || 'unclear') !== gmRoute) return false;
     const itemHasEvidence = hasRouteEvidence(item);
@@ -181,6 +197,14 @@ function renderOpportunities() {
     return true;
   });
   if (opportunityEls.count) opportunityEls.count.textContent = String(rows.length);
+  if (opportunityEls.hiddenNote) {
+    const hidden = lifecycle === 'actionable'
+      ? opportunityFeed.filter(item => item.lifecycle === 'closed' || opportunityExpired(item)).length
+      : 0;
+    opportunityEls.hiddenNote.textContent = hidden
+      ? `${hidden} closed or expired ${hidden === 1 ? 'call is' : 'calls are'} hidden — switch Lifecycle to see them.`
+      : '';
+  }
   opportunityEls.grid.innerHTML = rows.length ? rows.map(item => `<article class="opportunity-card"><div class="card-top"><span class="lifecycle-badge ${opportunityEscape(item.lifecycle)}">${opportunityEscape(opportunityLifecycleLabel(item.lifecycle))}</span><span class="badge ${opportunityEscape(item.source_state)}">${opportunityEscape(item.source_state)}</span></div><h3>${opportunityEscape(item.title)}</h3><p class="meta">${opportunityEscape(item.funder)}${item.programme ? ` • ${opportunityEscape(item.programme)}` : ''}</p><dl class="opportunity-facts"><div><dt>Deadline</dt><dd>${opportunityEscape(opportunityDate(item.closing_at))}</dd></div><div><dt>Funding</dt><dd>${opportunityEscape(opportunityAmount(item))}</dd></div><div><dt>Global Majority route</dt><dd>${opportunityEscape(item.global_majority_access || 'unclear')}</dd></div><div><dt>${country ? `Route for ${country}` : 'Applicant route'}</dt><dd>${opportunityEscape(country ? routeSummary(item,country) : (hasRouteEvidence(item) ? 'Structured route evidence available' : 'Not yet verified'))}</dd></div></dl><p class="opportunity-warning">${opportunityEscape(item.eligibility || 'Not determined — verify at source')}</p>${sourceEvidenceHtml(item)}<div class="card-bottom"><span class="meta">Checked ${opportunityEscape(opportunityDate(item.source_checked_at))}</span><a class="source-link" data-source-id="${opportunityEscape(item.source_id)}" href="${opportunityEscape(item.primary_url)}" target="_blank" rel="noreferrer">Primary call ↗</a></div></article>`).join('') : `<div class="opportunity-empty"><h3>No verified opportunities match this view</h3><p>${opportunityFeed.length ? 'Broaden a filter or switch Evidence threshold to include unverified routes. Unknown is not treated as ineligible.' : 'The opportunity feed is ready but currently contains no published structured records. The funder directory below remains fully available.'}</p></div>`;
   wireSourceLinkTelemetry();
 }
