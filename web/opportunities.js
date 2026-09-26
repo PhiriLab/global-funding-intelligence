@@ -5,6 +5,20 @@ document.head.appendChild(opportunityStyle);
 
 const GFI_SUPABASE_URL = 'https://wuuuvutjudlotqrnakgj.supabase.co';
 const GFI_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_vmgTqhXjCAFq7EjoU0Vd3w_hIlEfWsT';
+// One funder, one id. The curated directory and the live feed name the same funder
+// differently — the directory uses funder ids ('ukri'), the publisher uses connector
+// ids ('ukri_funding_finder') — which split that funder's reach and opens across two
+// rows. Canonicalise at the telemetry boundary so a per-funder count is the funder's
+// and not one surface's. Directory ids win: they name the funder, not the connector.
+const GFI_SOURCE_ALIASES = {
+  ukri_funding_finder: 'ukri',
+  eu_funding_tenders: 'eu',
+  nihr_funding: 'nihr'
+};
+function gfiCanonicalSource(sourceId) {
+  return GFI_SOURCE_ALIASES[sourceId] || sourceId;
+}
+
 const GFI_ALLOWED_EVENTS = new Set([
   'page_ready', 'feed_ready', 'feed_unavailable', 'filter_change',
   'search_used', 'profile_ranked', 'primary_source_open', 'pulse_submitted',
@@ -351,7 +365,7 @@ function renderProfileRanking(track = false) {
 const gfiSeenImpressions = new Set();
 let gfiImpressionObserver = null;
 function gfiWatchImpression(link) {
-  const sourceId = link.dataset.sourceId;
+  const sourceId = gfiCanonicalSource(link.dataset.sourceId);
   if (!sourceId || sourceId === 'unknown' || gfiSeenImpressions.has(sourceId)) return;
   if (typeof IntersectionObserver === 'undefined') {
     gfiSeenImpressions.add(sourceId);
@@ -378,7 +392,7 @@ function gfiWatchImpression(link) {
 function wireSourceLinkTelemetry() {
   document.querySelectorAll('.source-link:not([data-telemetry-wired])').forEach(link => {
     link.dataset.telemetryWired = 'true';
-    link.addEventListener('click', () => gfiTrack('primary_source_open', {source_id:link.dataset.sourceId || 'unknown'}));
+    link.addEventListener('click', () => gfiTrack('primary_source_open', {source_id:gfiCanonicalSource(link.dataset.sourceId) || 'unknown'}));
     gfiWatchImpression(link);
   });
 }
