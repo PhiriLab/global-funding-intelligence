@@ -1,6 +1,11 @@
 (() => {
   'use strict';
 
+  const impactStyle = document.createElement('link');
+  impactStyle.rel = 'stylesheet';
+  impactStyle.href = 'impact-pulse.css';
+  document.head.appendChild(impactStyle);
+
   const PULSE_TABLE = '/rest/v1/gfi_usefulness_pulse';
   const PULSE_LAST_KEY = 'gfi-impact-pulse-last-v1';
   const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
