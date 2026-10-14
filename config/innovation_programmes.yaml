@@ -1,0 +1,225 @@
+version: 1
+verified_at: 2026-08-26
+policy:
+  primary_source_only: true
+  eligibility_from_free_text: forbidden
+  untrusted_external_content: true
+  unknown_stays_unknown: true
+  programme_type_must_be_explicit: true
+  eu_programmes_dedupe_to_parent: true
+  investor_access_is_not_grant: true
+
+programmes:
+  - id: eurostars
+    name: Eurostars
+    operator: Eureka Network
+    primary_url: https://www.eurekanetwork.org/programmes/eurostars/
+    programme_class: direct_funding
+    priority: P1
+    geography: [Europe, international]
+    themes: [startup, sme, r_and_d, deep_tech, international_collaboration]
+    venture_stages: [startup, sme]
+    cross_border_required: true
+    global_majority_relevance: high
+    notes: SME-led international R&D programme. South Africa and the UK are participating Eurostars countries; call-specific national funding rules remain authoritative.
+
+  - id: women_techeu
+    name: Women TechEU
+    operator: Women TechEU / European Commission ecosystem
+    primary_url: https://womentecheurope.eu/
+    programme_class: direct_funding
+    priority: P1
+    geography: [EU, associated_countries]
+    themes: [women_led, deep_tech, startup, innovation]
+    venture_stages: [early_stage_startup]
+    women_led_target: true
+    global_majority_relevance: mixed
+    notes: Women-led deep-tech startup support. Eligibility, cut-offs and grant terms must be verified from the current authoritative call materials.
+
+  - id: innosuisse_startup_innovation
+    name: Innosuisse Start-up Innovation Projects
+    operator: Innosuisse
+    primary_url: https://www.innosuisse.admin.ch/en/start-up-innovation-projects
+    programme_class: direct_funding
+    priority: P1
+    geography: [Switzerland]
+    themes: [startup, science_based, digital, life_sciences, health, engineering, climate, deep_tech]
+    venture_stages: [pre_market_startup]
+    global_majority_relevance: low
+    notes: Swiss science-based start-up innovation support; current programme rules and entity-location requirements remain authoritative.
+
+  - id: go_bio_next
+    name: GO-Bio next
+    operator: German Federal Ministry / Project Management Juelich
+    primary_url: https://www.go-bio.de/gobio/en/go-bio/go-bio-next/go-bio-next.html
+    programme_class: direct_funding
+    priority: P1
+    geography: [Germany]
+    themes: [life_sciences, biotech, spinout, research_commercialisation]
+    venture_stages: [research_team, spinout, startup]
+    spinout_route: true
+    global_majority_relevance: low
+    notes: Research-to-company life-science commercialisation. Phase, host and company eligibility must be verified from the live call.
+
+  - id: aws_preseed_seedfinancing
+    name: aws Preseed / Seedfinancing Deep Tech
+    operator: Austria Wirtschaftsservice
+    primary_url: https://www.aws.at/en/aws-preseed-seedfinancing/
+    programme_class: direct_funding
+    priority: P1
+    geography: [Austria]
+    themes: [preseed, seed, deep_tech, digital, life_sciences, greentech, quantum]
+    venture_stages: [preseed, seed, startup]
+    global_majority_relevance: low
+    notes: Programme family should be split into distinct Preseed and Seedfinancing records when call-level structured extraction is activated.
+
+  - id: innobooster
+    name: Innobooster
+    operator: Innovation Fund Denmark
+    primary_url: https://innovationsfonden.dk/en/p/innobooster
+    programme_class: direct_funding
+    priority: P1
+    geography: [Denmark]
+    themes: [sme, startup, innovation, r_and_d, commercialisation]
+    venture_stages: [startup, sme]
+    global_majority_relevance: low
+    notes: Danish SME/startup innovation programme; current co-funding rate, funding band and round dates must be source-verified.
+
+  - id: eic_pathfinder
+    name: EIC Pathfinder
+    operator: European Innovation Council
+    primary_url: https://eic.ec.europa.eu/eic-funding-opportunities/eic-pathfinder_en
+    programme_class: eu_programme_pipeline
+    priority: P1
+    geography: [EU, associated_countries]
+    themes: [deep_tech, breakthrough_research, frontier_innovation, translational]
+    venture_stages: [research, pre_spinout]
+    trl_min: 1
+    trl_max: 4
+    dedupe_parent: eu_funding_tenders
+    global_majority_relevance: mixed
+    notes: Programme-specific view over EU Funding & Tenders records. Do not duplicate a topic already present under the parent EU source; use the authoritative EU topic identifier.
+
+  - id: life_programme
+    name: LIFE Programme
+    operator: CINEA / European Commission
+    primary_url: https://cinea.ec.europa.eu/programmes/life_en
+    programme_class: eu_programme_pipeline
+    priority: P1
+    geography: [EU, participating_countries]
+    themes: [climate, environment, biodiversity, circular_economy, clean_energy]
+    venture_stages: [research, demonstration, deployment]
+    dedupe_parent: eu_funding_tenders
+    global_majority_relevance: mixed
+    notes: Dedicated thematic view over LIFE calls while the EU Funding & Tenders topic remains the call system of record.
+
+  - id: eu_cascade_funding_fstp
+    name: EU Cascade Funding / FSTP
+    operator: European Commission / EU-funded consortia
+    primary_url: https://webgate.ec.europa.eu/funding-tenders-opportunities/spaces/IT/pages/25559615/Cascade+Funding+Calls+Financial+Support+for+Third+Parties+FSTP
+    programme_class: cascade_funding
+    priority: P1
+    geography: [EU, associated_countries, international_call_specific]
+    themes: [startup, scaleup, sme, digital, cascade_funding, third_party_support]
+    venture_stages: [startup, scaleup, sme]
+    dedupe_parent: eu_funding_tenders
+    global_majority_relevance: mixed
+    notes: This is an opportunity class/meta-route rather than a single funder. Final eligibility and grant terms resolve to the issuing EU-funded consortium call.
+
+  - id: zim
+    name: Central Innovation Programme for SMEs (ZIM)
+    operator: German Federal Ministry for Economic Affairs and Energy
+    primary_url: https://www.zim.de/ZIM/Navigation/DE/Meta/Englisch/englisch.html
+    programme_class: watcher
+    priority: P2
+    geography: [Germany, international_partnerships]
+    themes: [sme, r_and_d, technology, international_collaboration]
+    venture_stages: [sme]
+    global_majority_relevance: mixed
+    notes: International partners may participate under bilateral/multilateral calls but generally require their own national funding route. Never imply ZIM directly funds a non-German partner without call evidence.
+
+  - id: cdti_neotec
+    name: NEOTEC
+    operator: CDTI
+    primary_url: https://www.cdti.es/en/ayudas/neotec
+    programme_class: watcher
+    priority: P2
+    geography: [Spain]
+    themes: [startup, technology_company, innovation, women_led]
+    venture_stages: [early_stage_startup]
+    global_majority_relevance: low
+    notes: Annual Spanish technology-company programme; publish call-level records only when a current authoritative round is open or forthcoming.
+
+  - id: bpifrance_i_nov
+    name: i-Nov Innovation Competition
+    operator: Bpifrance / French State
+    primary_url: https://www.bpifrance.fr/nos-appels-a-projets-concours/appel-a-projets-concours-dinnovation-i-nov
+    programme_class: watcher
+    priority: P2
+    geography: [France]
+    themes: [startup, sme, innovation, digital, health, climate, deep_tech]
+    venture_stages: [startup, sme, growth]
+    global_majority_relevance: low
+    notes: Recurring French innovation competition. Current edition, project-cost band and aid instrument must be verified at source.
+
+  - id: france_i_lab
+    name: i-Lab Innovation Competition
+    operator: French Ministry / Bpifrance
+    primary_url: https://www.francealumni.fr/en/news/the-27th-i-lab-contest-opens-promoting-the-best-innovative-projects-9512
+    programme_class: watcher
+    priority: P2
+    geography: [France]
+    themes: [spinout, research_commercialisation, deep_tech, startup]
+    venture_stages: [research_team, spinout, startup]
+    spinout_route: true
+    global_majority_relevance: low
+    notes: Discovery URL supplied by the user. Before live publication, resolve each round to the authoritative French ministry/Bpifrance call page rather than treating France Alumni as the system of record.
+
+  - id: eit_opportunities
+    name: EIT Opportunities
+    operator: European Institute of Innovation and Technology
+    primary_url: https://www.eit.europa.eu/our-activities/opportunities
+    programme_class: meta_source
+    priority: P2
+    geography: [EU, international_call_specific]
+    themes: [startup, innovation, accelerator, training, market_access, funding]
+    venture_stages: [startup, scaleup, research, professional]
+    global_majority_relevance: mixed
+    notes: Meta-source containing funding, accelerators, training and other opportunities. Opportunity type must be classified before display; non-funding offers must not appear as grants.
+
+  - id: esa_bic_booster
+    name: ESA BIC Booster Funding Opportunities
+    operator: ESA BIC / ESA ecosystem
+    primary_url: https://booster.esa-bic.de/funding-opportunities/
+    programme_class: watcher
+    priority: P2
+    geography: [Europe, programme_specific]
+    themes: [space, deep_tech, technology_transfer, startup, demonstration]
+    venture_stages: [startup, spinout, demonstration]
+    spinout_route: true
+    global_majority_relevance: low
+    notes: Specialist space-technology route. Funding mechanism and ESA BIC participation requirements are programme-specific.
+
+  - id: french_tech_rise
+    name: French Tech Rise
+    operator: La French Tech
+    primary_url: https://lafrenchtech.gouv.fr/en/programme/french-tech-rise-2/
+    programme_class: ecosystem_access
+    priority: P3
+    geography: [France]
+    themes: [startup, investor_access, venture_capital, ecosystem]
+    venture_stages: [startup, scaleup]
+    global_majority_relevance: low
+    notes: Investor-access and ecosystem programme, not a grant. Must never be presented as a verified cash-funding opportunity unless a separate authoritative funding instrument is identified.
+
+  - id: french_tech_2030
+    name: French Tech 2030
+    operator: La French Tech / French State
+    primary_url: https://lafrenchtech.gouv.fr/fr/programme/french-tech-2030/
+    programme_class: ecosystem_access
+    priority: P2
+    geography: [France]
+    themes: [strategic_technology, ai, quantum, cybersecurity, space, robotics, health, energy, decarbonisation]
+    venture_stages: [startup, scaleup]
+    global_majority_relevance: low
+    notes: Strategic-technology support programme. Treat as ecosystem/support unless a direct funding entitlement is separately verified.
