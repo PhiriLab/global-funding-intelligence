@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://phirilab.github.io/global-funding-intelligence/sitemap.xml
