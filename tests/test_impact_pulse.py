@@ -13,7 +13,7 @@ def test_impact_pulse_is_loaded_after_opportunities():
 
 def test_impact_pulse_posts_only_non_identifying_outcomes():
     assert 'gfi_usefulness_pulse' in PULSE
-    payload_match = re.search(r"const payload = \\{(.*?)\\n\\s*\\};", PULSE, re.DOTALL)
+    payload_match = re.search(r"const payload = \{(.*?)\n\s*\};", PULSE, re.DOTALL)
     assert payload_match, "Impact-pulse payload definition not found"
     payload = payload_match.group(1)
 
@@ -23,11 +23,11 @@ def test_impact_pulse_posts_only_non_identifying_outcomes():
         'career_stage', 'sector', 'setting_identity', 'comment'
     ]
     for field in approved_fields:
-        assert re.search(rf"\\b{re.escape(field)}\\s*:", payload)
+        assert re.search(rf"\b{re.escape(field)}\s*:", payload)
 
     forbidden_fields = ['email', 'name', 'full_name', 'proposal_text', 'contact_details']
     for field in forbidden_fields:
-        assert not re.search(rf"\\b{re.escape(field)}\\s*:", payload, re.IGNORECASE)
+        assert not re.search(rf"\b{re.escape(field)}\s*:", payload, re.IGNORECASE)
 
 def test_database_accepts_pulse_submissions():
     assert 'gfi_usefulness_pulse' in DB
