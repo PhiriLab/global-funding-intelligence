@@ -65,6 +65,23 @@
     catch (_) { return null; }
   }
 
+  function campaignAttribution() {
+    try {
+      const params = new URLSearchParams(location.search);
+      const clean = value => String(value || '').trim().slice(0, 120) || null;
+      return {
+        utm_source: clean(params.get('utm_source')),
+        utm_medium: clean(params.get('utm_medium')),
+        utm_campaign: clean(params.get('utm_campaign')),
+        utm_content: clean(params.get('utm_content'))
+      };
+    } catch (_) {
+      return {utm_source:null, utm_medium:null, utm_campaign:null, utm_content:null};
+    }
+  }
+
+  const campaign = campaignAttribution();
+
   function enrich(body) {
     body.session_id = session;
     body.client_event_id = uuid();
@@ -74,6 +91,9 @@
     body.referrer_class = referrerClass();
     body.entry_host = entryHost();
     if (!body.properties || typeof body.properties !== 'object' || Array.isArray(body.properties)) body.properties = {};
+    for (const [key, value] of Object.entries(campaign)) {
+      if (value && body.properties[key] == null) body.properties[key] = value;
+    }
     if (body.event_name === 'primary_source_open' && (!body.properties.source_id || body.properties.source_id === 'unknown') && lastSourceId) {
       body.properties.source_id = lastSourceId;
     }
